@@ -23,43 +23,13 @@
       box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
     }
     
-    /* Universe Background Animation */
-    @keyframes move-twinkle {
-      0% { transform: translateY(0) rotate(0deg); opacity: 0.8; }
-      50% { opacity: 0.4; }
-      100% { transform: translateY(-100px) rotate(45deg); opacity: 0.8; }
-    }
-    
-    .universe-bg {
-      background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1a 100%);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .universe-bg::before {
-      content: '';
-      position: absolute;
-      width: 200%;
-      height: 200%;
-      top: -50%;
-      left: -50%;
+    /* Simple Grid Background */
+    .grid-bg {
+      background-color: #0f172a;
       background-image: 
-        radial-gradient(white 1px, transparent 1px),
-        radial-gradient(rgba(255,255,255,0.5) 1px, transparent 1px);
-      background-size: 50px 50px, 30px 30px;
-      background-position: 0 0, 15px 15px;
-      opacity: 0.1;
-      animation: move-twinkle 60s linear infinite;
-      z-index: -1;
-    }
-
-    .universe-bg::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.15), transparent 60%);
-      z-index: -1;
-      pointer-events: none;
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
     }
     
     /* Gradient animation for elements */
@@ -358,13 +328,13 @@
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
 </head>
 
-<body class="min-h-screen font-sans universe-bg text-slate-200" x-data="setupApp()">
+<body class="min-h-screen font-sans grid-bg text-slate-200" x-data="setupApp()">
   <!-- Header -->
   <div class="sticky top-0 z-50 backdrop-blur-xl bg-slate-900/80 border-b border-purple-500/20">
     <div class="max-w-7xl mx-auto px-6 py-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl animated-gradient flex items-center justify-center text-2xl">
+          <div class="w-12 h-12 rounded-xl bg-black flex items-center justify-center text-2xl">
             🦞
           </div>
           <div>
@@ -384,10 +354,10 @@
 
   <!-- Main Layout -->
   <div class="max-w-7xl mx-auto px-6 py-8">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
 
       <!-- Left Sidebar - Step Guide -->
-      <div class="lg:col-span-4" x-show="isReady" x-cloak>
+      <div class="md:col-span-4" x-show="isReady" x-cloak>
         <div class="sticky top-24 glass rounded-2xl p-6 shadow-2xl">
           <h2 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
             <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -486,7 +456,7 @@
       </div>
 
       <!-- Main Content Area -->
-      <div class="lg:col-span-8">
+      <div class="md:col-span-8">
 
         <!-- Configured State -->
         <div x-show="isReady && configured" x-cloak>
