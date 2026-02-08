@@ -1,0 +1,717 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🦞 OpenClaw — AI Assistant Setup</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style type="text/tailwindcss">
+    @theme {
+      --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    }
+    [x-cloak] { display: none !important; }
+    
+    /* Glassmorphism effect */
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Gradient animation */
+    @keyframes gradient-shift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    
+    .animated-gradient {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7, #6366f1);
+      background-size: 400% 400%;
+      animation: gradient-shift 15s ease infinite;
+    }
+    
+    /* Smooth transitions */
+    * {
+      transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      transition-duration: 150ms;
+    }
+  </style>
+  <script>
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('setupApp', () => ({
+      step: 1,
+      totalSteps: 3,
+      status: 'Loading...',
+      configured: false,
+      openclawVersion: '',
+      authGroups: [],
+      selectedGroup: '',
+      authChoices: [],
+      selectedAuth: '',
+      authSecret: '',
+      flow: 'quickstart',
+      telegramToken: '',
+      discordToken: '',
+      slackBotToken: '',
+      slackAppToken: '',
+      model: '',
+      log: '',
+      loading: false,
+      pairingChannel: '',
+      pairingCode: '',
+      showPairingModal: false,
+      isReady: false,
+      tuiEnabled: false,
+      currentLoadingMessage: '',
+      loadingMessageIndex: 0,
+      
+      loadingMessages: [
+        "🦞 Setting up the lobster...",
+        "☕ Building the most advanced AI assistant while you sip your coffee...",
+        "🚀 Launching your AI companion into orbit...",
+        "🧠 Training neural pathways for maximum intelligence...",
+        "⚡ Supercharging your AI assistant...",
+        "🎨 Painting your digital canvas with AI magic...",
+        "🔮 Conjuring up some AI sorcery...",
+        "🎯 Calibrating precision AI responses...",
+        "🌟 Sprinkling some stardust on your setup...",
+        "🏗️ Constructing your AI powerhouse...",
+        "🎭 Teaching AI the art of conversation...",
+        "🔧 Fine-tuning the AI engine...",
+        "🌈 Adding colors to your AI experience...",
+        "💎 Polishing your premium AI assistant...",
+        "🎪 Setting up the AI circus... in a good way!"
+      ],
+
+      get currentGroup() {
+        return this.authGroups.find(g => g.value === this.selectedGroup);
+      },
+
+      async init() {
+        await this.refreshStatus();
+      },
+
+      async httpJson(url, opts = {}) {
+        opts.credentials = 'same-origin';
+        const res = await fetch(url, opts);
+        if (!res.ok) {
+          const t = await res.text();
+          throw new Error('HTTP ' + res.status + ': ' + (t || res.statusText));
+        }
+        return res.json();
+      },
+
+      async refreshStatus() {
+        this.status = 'Loading...';
+        try {
+          const j = await this.httpJson('/setup/api/status');
+          this.configured = j.configured;
+          this.openclawVersion = j.openclawVersion || '';
+          this.tuiEnabled = j.tuiEnabled || false;
+          this.status = j.configured ? 'Configured - open /openclaw' : 'Not configured - run setup below';
+          this.authGroups = j.authGroups || [];
+          if (this.authGroups.length > 0) {
+            this.selectedGroup = this.authGroups[0].value;
+            this.updateAuthChoices();
+          }
+          if (j.channelsAddHelp && j.channelsAddHelp.indexOf('telegram') === -1) {
+            this.log += '\nNote: this openclaw build does not list telegram in `channels add --help`. Telegram auto-add will be skipped.\n';
+          }
+          this.isReady = true;
+        } catch (e) {
+          this.status = 'Error: ' + String(e);
+          this.isReady = true;
+        }
+      },
+
+      updateAuthChoices() {
+        const group = this.currentGroup;
+        this.authChoices = (group && group.options) ? group.options : [];
+        if (this.authChoices.length > 0) {
+          this.selectedAuth = this.authChoices[0].value;
+        }
+      },
+
+      nextStep() {
+        if (this.step < this.totalSteps) this.step++;
+      },
+
+      prevStep() {
+        if (this.step > 1) this.step--;
+      },
+      
+      startLoadingMessages() {
+        // Shuffle and pick 2-3 random messages
+        const shuffled = [...this.loadingMessages].sort(() => Math.random() - 0.5);
+        const messagesToShow = shuffled.slice(0, 2 + Math.floor(Math.random() * 2)); // 2-3 messages
+        
+        let index = 0;
+        this.currentLoadingMessage = messagesToShow[0];
+        
+        const interval = setInterval(() => {
+          index++;
+          if (index < messagesToShow.length) {
+            this.currentLoadingMessage = messagesToShow[index];
+          } else {
+            clearInterval(interval);
+          }
+        }, 12000); // Change message every 12 seconds
+        
+        return interval;
+      },
+
+      async runSetup() {
+        const payload = {
+          flow: this.flow,
+          authChoice: this.selectedAuth,
+          authSecret: this.authSecret,
+          model: this.model,
+          telegramToken: this.telegramToken,
+          discordToken: this.discordToken,
+          slackBotToken: this.slackBotToken,
+          slackAppToken: this.slackAppToken
+        };
+
+        this.log = 'Running...\n';
+        this.loading = true;
+        const loadingInterval = this.startLoadingMessages();
+
+        try {
+          const res = await fetch('/setup/api/run', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const text = await res.text();
+          let j;
+          try { j = JSON.parse(text); } catch (_e) { j = { ok: false, output: text }; }
+          this.log += (j.output || JSON.stringify(j, null, 2));
+          await this.refreshStatus();
+        } catch (e) {
+          this.log += '\nError: ' + String(e) + '\n';
+        } finally {
+          clearInterval(loadingInterval);
+          this.currentLoadingMessage = '';
+          this.loading = false;
+        }
+      },
+
+      openPairingModal() {
+        this.pairingChannel = '';
+        this.pairingCode = '';
+        this.showPairingModal = true;
+      },
+
+      async approvePairing() {
+        const channel = this.pairingChannel.trim().toLowerCase();
+        if (channel !== 'telegram' && channel !== 'discord') {
+          alert('Channel must be "telegram" or "discord"');
+          return;
+        }
+        const code = this.pairingCode.trim();
+        if (!code) {
+          alert('Please enter a pairing code');
+          return;
+        }
+        this.showPairingModal = false;
+        this.log += '\nApproving pairing for ' + channel + '...\n';
+
+        try {
+          const res = await fetch('/setup/api/pairing/approve', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ channel: channel, code: code })
+          });
+          const t = await res.text();
+          let result;
+          try { result = JSON.parse(t); } catch (_e) { result = { ok: false, output: t }; }
+          if (result.ok) {
+            const msg = result.output || 'Pairing approved successfully';
+            this.log += '✓ ' + msg + '\n';
+            alert('✓ ' + msg.trim());
+          } else {
+            const msg = result.output || result.error || 'Unknown error';
+            this.log += '✗ Failed: ' + msg + '\n';
+            alert('✗ Pairing failed: ' + msg.trim());
+          }
+        } catch (e) {
+          this.log += '✗ Error: ' + String(e) + '\n';
+          alert('✗ Pairing failed: ' + String(e));
+        }
+      },
+
+      async resetSetup() {
+        if (!confirm('Reset setup? This deletes the config file so onboarding can run again.')) return;
+        this.log = 'Resetting...\n';
+        this.loading = true;
+
+        try {
+          const res = await fetch('/setup/api/reset', { method: 'POST', credentials: 'same-origin' });
+          const t = await res.text();
+          this.log += t + '\n';
+          await this.refreshStatus();
+        } catch (e) {
+          this.log += 'Error: ' + String(e) + '\n';
+        } finally {
+          this.loading = false;
+        }
+      },
+
+      async runDoctor() {
+        this.log = 'Running doctor...\n';
+        this.loading = true;
+
+        try {
+          const res = await fetch('/setup/api/doctor', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'content-type': 'application/json' }
+          });
+          const text = await res.text();
+          let j;
+          try { j = JSON.parse(text); } catch (_e) { j = { ok: false, output: text }; }
+          this.log += (j.output || JSON.stringify(j, null, 2));
+          if (j.ok) {
+            this.log += '\n✓ Doctor completed successfully\n';
+          } else {
+            this.log += '\n✗ Doctor found issues\n';
+          }
+        } catch (e) {
+          this.log += 'Error: ' + String(e) + '\n';
+        } finally {
+          this.loading = false;
+        }
+      }
+    }));
+  });
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+</head>
+<body class="min-h-screen font-sans bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900" x-data="setupApp()">
+  <!-- Header -->
+  <div class="sticky top-0 z-50 backdrop-blur-xl bg-slate-900/80 border-b border-purple-500/20">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl animated-gradient flex items-center justify-center text-2xl">
+            🦞
+          </div>
+          <div>
+            <h1 class="text-xl font-bold text-white">OpenClaw Setup</h1>
+            <p class="text-sm text-purple-300">AI Assistant Configuration</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span x-show="openclawVersion" x-text="openclawVersion" class="text-xs text-slate-400 bg-slate-800 px-3 py-1.5 rounded-lg"></span>
+          <span x-text="status" class="text-xs px-3 py-1.5 rounded-lg font-medium" :class="configured ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Left Sidebar - Step Guide -->
+      <div class="lg:col-span-4" x-show="isReady && !configured" x-cloak>
+        <div class="sticky top-24 glass rounded-2xl p-6 shadow-2xl">
+          <h2 class="text-lg font-bold text-white mb-6 flex items-center gap-2">
+            <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Setup Guide
+          </h2>
+          
+          <!-- Step 1 -->
+          <div class="mb-6" :class="step >= 1 ? 'opacity-100' : 'opacity-50'">
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm" :class="step === 1 ? 'animated-gradient text-white' : (step > 1 ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-slate-400')">
+                <span x-show="step > 1">✓</span>
+                <span x-show="step <= 1">1</span>
+              </div>
+              <div class="flex-1">
+                <h3 class="font-semibold text-white mb-2">Choose Your Provider</h3>
+                <ul class="text-sm text-slate-300 space-y-1">
+                  <li class="flex items-start gap-2">
+                    <span class="text-purple-400 mt-0.5">•</span>
+                    <span>Select your AI provider (OpenAI, Anthropic, etc.)</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-purple-400 mt-0.5">•</span>
+                    <span>Provide API key/token</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-purple-400 mt-0.5">•</span>
+                    <span>Keep configuration as "Quickstart"</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Step 2 -->
+          <div class="mb-6" :class="step >= 2 ? 'opacity-100' : 'opacity-50'">
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm" :class="step === 2 ? 'animated-gradient text-white' : (step > 2 ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-slate-400')">
+                <span x-show="step > 2">✓</span>
+                <span x-show="step <= 2">2</span>
+              </div>
+              <div class="flex-1">
+                <h3 class="font-semibold text-white mb-2">Setup Integrations <span class="text-xs text-purple-300">(Optional)</span></h3>
+                <ul class="text-sm text-slate-300 space-y-1">
+                  <li class="flex items-start gap-2">
+                    <span class="text-purple-400 mt-0.5">•</span>
+                    <span>Configure Telegram/Discord/Slack</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-purple-400 mt-0.5">•</span>
+                    <span>Can be done later from the dashboard</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Step 3 -->
+          <div :class="step >= 3 ? 'opacity-100' : 'opacity-50'">
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm" :class="step === 3 ? 'animated-gradient text-white' : (step > 3 ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-slate-400')">
+                <span x-show="step > 3">✓</span>
+                <span x-show="step <= 3">3</span>
+              </div>
+              <div class="flex-1">
+                <h3 class="font-semibold text-white mb-2">Deploy & Launch <span class="text-xs text-purple-300">(~30 sec)</span></h3>
+                <ul class="text-sm text-slate-300 space-y-1">
+                  <li class="flex items-start gap-2">
+                    <span class="text-purple-400 mt-0.5">•</span>
+                    <span>Click "Run Setup" to initialize</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-purple-400 mt-0.5">•</span>
+                    <span>If bot token provided: Approve pairing with code</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-purple-400 mt-0.5">•</span>
+                    <span>Click "Open OpenClaw UI" to access dashboard</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-purple-400 mt-0.5">•</span>
+                    <span>For errors: Use "Run Doctor" in Config Editor</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="lg:col-span-8">
+        
+        <!-- Configured State -->
+        <div x-show="isReady && configured" x-cloak>
+          <div class="glass rounded-2xl p-8 shadow-2xl">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center text-2xl">
+                ✓
+              </div>
+              <div>
+                <h2 class="text-2xl font-bold text-white">Setup Complete!</h2>
+                <p class="text-slate-300">Your OpenClaw instance is configured and running</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <a href="/openclaw" target="_blank" class="group glass hover:bg-purple-500/20 rounded-xl p-5 transition-all hover:scale-[1.02] border-2 border-transparent hover:border-purple-500/50">
+                <div class="flex items-center gap-3 mb-2">
+                  <div class="w-10 h-10 rounded-lg bg-purple-500/20 group-hover:bg-purple-500/30 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                  </div>
+                  <span class="font-semibold text-white">Open OpenClaw UI</span>
+                </div>
+                <p class="text-sm text-slate-400">Access your AI dashboard</p>
+              </a>
+
+              <a x-show="tuiEnabled" href="/tui" target="_blank" class="group glass hover:bg-indigo-500/20 rounded-xl p-5 transition-all hover:scale-[1.02] border-2 border-transparent hover:border-indigo-500/50">
+                <div class="flex items-center gap-3 mb-2">
+                  <div class="w-10 h-10 rounded-lg bg-indigo-500/20 group-hover:bg-indigo-500/30 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  </div>
+                  <span class="font-semibold text-white">Open Terminal</span>
+                </div>
+                <p class="text-sm text-slate-400">Browser-based CLI access</p>
+              </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div class="glass rounded-xl p-4 hover:bg-amber-500/10 transition-all">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                  </div>
+                  <span class="font-medium text-white">Run Doctor</span>
+                </div>
+                <button @click="runDoctor()" :disabled="loading" class="w-full bg-amber-500/20 hover:bg-amber-500/30 disabled:opacity-50 text-amber-300 px-4 py-2.5 rounded-lg font-medium border border-amber-500/30 transition-all">
+                  <span x-show="!loading">Diagnose</span>
+                  <span x-show="loading" class="flex items-center justify-center gap-2">
+                    <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    Running...
+                  </span>
+                </button>
+              </div>
+
+              <div class="glass rounded-xl p-4 hover:bg-blue-500/10 transition-all">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                  </div>
+                  <span class="font-medium text-white">Approve Pairing</span>
+                </div>
+                <button @click="openPairingModal()" :disabled="loading" class="w-full bg-blue-500/20 hover:bg-blue-500/30 disabled:opacity-50 text-blue-300 px-4 py-2.5 rounded-lg font-medium border border-blue-500/30 transition-all">
+                  Grant Access
+                </button>
+              </div>
+
+              <div class="glass rounded-xl p-4 hover:bg-red-500/10 transition-all">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </div>
+                  <span class="font-medium text-white">Reset Setup</span>
+                </div>
+                <button @click="resetSetup()" :disabled="loading" class="w-full bg-red-500/20 hover:bg-red-500/30 disabled:opacity-50 text-red-300 px-4 py-2.5 rounded-lg font-medium border border-red-500/30 transition-all">
+                  Reset
+                </button>
+              </div>
+            </div>
+
+            <div x-show="log" class="glass rounded-xl p-4 font-mono text-xs text-slate-300 whitespace-pre-wrap max-h-64 overflow-y-auto" x-text="log"></div>
+          </div>
+        </div>
+
+        <!-- Unconfigured State - Step Wizard -->
+        <div x-show="isReady && !configured" x-cloak>
+          
+          <!-- Step 1: Provider & Authentication -->
+          <div x-show="step === 1" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+            <div class="glass rounded-2xl p-8 shadow-2xl">
+              <h2 class="text-2xl font-bold text-white mb-2">Choose Your AI Provider</h2>
+              <p class="text-slate-400 mb-8">Select your preferred AI service and authentication method</p>
+
+              <div class="space-y-6">
+                <div>
+                  <label class="block text-sm font-semibold text-purple-300 mb-3">Provider Group</label>
+                  <select x-model="selectedGroup" @change="updateAuthChoices()" class="w-full bg-slate-800/50 border border-purple-500/30 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all">
+                    <template x-for="g in authGroups" :key="g.value">
+                      <option :value="g.value" x-text="g.label + (g.hint ? ' — ' + g.hint : '')"></option>
+                    </template>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-purple-300 mb-3">Authentication Method</label>
+                  <select x-model="selectedAuth" class="w-full bg-slate-800/50 border border-purple-500/30 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all">
+                    <template x-for="o in authChoices" :key="o.value">
+                      <option :value="o.value" x-text="o.label + (o.hint ? ' — ' + o.hint : '')"></option>
+                    </template>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-purple-300 mb-3">API Key / Token</label>
+                  <input x-model="authSecret" type="password" placeholder="Paste your API key or token" class="w-full bg-slate-800/50 border border-purple-500/30 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all" />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-purple-300 mb-3">Model (Optional)</label>
+                  <input x-model="model" type="text" placeholder="e.g. openai/gpt-4.1, anthropic/claude-sonnet-4" class="w-full bg-slate-800/50 border border-purple-500/30 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all" />
+                  <p class="text-xs text-slate-500 mt-2">Format: provider/model-name</p>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-purple-300 mb-3">Configuration Flow</label>
+                  <select x-model="flow" class="w-full bg-slate-800/50 border border-purple-500/30 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all">
+                    <option value="quickstart">Quickstart (Recommended)</option>
+                    <option value="advanced">Advanced</option>
+                    <option value="manual">Manual</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Channels -->
+          <div x-show="step === 2" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+            <div class="glass rounded-2xl p-8 shadow-2xl">
+              <h2 class="text-2xl font-bold text-white mb-2">Connect Messaging Platforms</h2>
+              <p class="text-slate-400 mb-8">Optional — You can configure these later from the dashboard</p>
+
+              <div class="space-y-6">
+                <div class="bg-sky-500/10 rounded-xl p-5 border border-sky-500/30">
+                  <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-sky-500/20 rounded-lg flex items-center justify-center">
+                      <svg class="w-6 h-6 text-sky-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+                    </div>
+                    <span class="font-semibold text-white text-lg">Telegram</span>
+                  </div>
+                  <input x-model="telegramToken" type="password" placeholder="Bot token from @BotFather" class="w-full bg-slate-800/50 border border-sky-500/30 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all" />
+                  <p class="text-xs text-slate-400 mt-3">Message <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sky-400">@BotFather</code> on Telegram and run <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sky-400">/newbot</code></p>
+                </div>
+
+                <div class="bg-indigo-500/10 rounded-xl p-5 border border-indigo-500/30">
+                  <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center">
+                      <svg class="w-6 h-6 text-indigo-400" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+                    </div>
+                    <span class="font-semibold text-white text-lg">Discord</span>
+                  </div>
+                  <input x-model="discordToken" type="password" placeholder="Bot token from Developer Portal" class="w-full bg-slate-800/50 border border-indigo-500/30 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                  <p class="text-xs text-slate-400 mt-3">Enable <strong class="text-amber-400">MESSAGE CONTENT INTENT</strong> in Bot → Privileged Gateway Intents</p>
+                </div>
+
+                <div class="bg-green-500/10 rounded-xl p-5 border border-green-500/30">
+                  <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                      <svg class="w-6 h-6 text-green-400" viewBox="0 0 24 24" fill="currentColor"><path d="M5.042 15.165a2.528 2.528 0 01-2.52 2.523A2.528 2.528 0 010 15.165a2.527 2.527 0 012.522-2.52h2.52v2.52zm1.271 0a2.527 2.527 0 012.521-2.52 2.527 2.527 0 012.521 2.52v6.313A2.528 2.528 0 018.834 24a2.528 2.528 0 01-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 01-2.521-2.52A2.528 2.528 0 018.834 0a2.528 2.528 0 012.521 2.522v2.52H8.834zm0 1.271a2.528 2.528 0 012.521 2.521 2.528 2.528 0 01-2.521 2.521H2.522A2.528 2.528 0 010 8.834a2.528 2.528 0 012.522-2.521h6.312zm10.124 2.521a2.528 2.528 0 012.522-2.521A2.528 2.528 0 0124 8.834a2.528 2.528 0 01-2.52 2.521h-2.522V8.834zm-1.271 0a2.528 2.528 0 01-2.521 2.521 2.528 2.528 0 01-2.521-2.521V2.522A2.528 2.528 0 0115.166 0a2.528 2.528 0 012.521 2.522v6.312zm-2.521 10.124a2.528 2.528 0 012.521 2.522A2.528 2.528 0 0115.166 24a2.528 2.528 0 01-2.521-2.522v-2.522h2.521zm0-1.271a2.528 2.528 0 01-2.521-2.521 2.528 2.528 0 012.521-2.521h6.312A2.528 2.528 0 0124 15.165a2.528 2.528 0 01-2.52 2.521h-6.313z"/></svg>
+                    </div>
+                    <span class="font-semibold text-white text-lg">Slack</span>
+                  </div>
+                  <div class="space-y-3">
+                    <input x-model="slackBotToken" type="password" placeholder="Bot token (xoxb-...)" class="w-full bg-slate-800/50 border border-green-500/30 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all" />
+                    <input x-model="slackAppToken" type="password" placeholder="App token (xapp-...)" class="w-full bg-slate-800/50 border border-green-500/30 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Review & Run -->
+          <div x-show="step === 3" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
+            <div class="glass rounded-2xl p-8 shadow-2xl">
+              <h2 class="text-2xl font-bold text-white mb-2">Review & Deploy</h2>
+              <p class="text-slate-400 mb-8">Verify your configuration and launch your AI assistant</p>
+
+              <!-- Configuration Summary -->
+              <div class="bg-slate-800/50 rounded-xl p-6 border border-purple-500/30 mb-6">
+                <h3 class="text-sm font-semibold text-purple-300 mb-4 flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                  Configuration Summary
+                </h3>
+                <dl class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <dt class="text-slate-500 mb-1">Provider</dt>
+                    <dd x-text="selectedGroup || '—'" class="text-white font-medium"></dd>
+                  </div>
+                  <div>
+                    <dt class="text-slate-500 mb-1">Authentication</dt>
+                    <dd x-text="selectedAuth || '—'" class="text-white font-medium"></dd>
+                  </div>
+                  <div>
+                    <dt class="text-slate-500 mb-1">Model</dt>
+                    <dd x-text="model || 'Default'" class="text-white font-medium"></dd>
+                  </div>
+                  <div>
+                    <dt class="text-slate-500 mb-1">Channels</dt>
+                    <dd class="flex flex-wrap gap-2">
+                      <span x-show="telegramToken" class="inline-flex items-center bg-sky-500/20 text-sky-300 px-2.5 py-1 rounded-lg text-xs font-medium border border-sky-500/30">Telegram</span>
+                      <span x-show="discordToken" class="inline-flex items-center bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-lg text-xs font-medium border border-indigo-500/30">Discord</span>
+                      <span x-show="slackBotToken && slackAppToken" class="inline-flex items-center bg-green-500/20 text-green-300 px-2.5 py-1 rounded-lg text-xs font-medium border border-green-500/30">Slack</span>
+                      <span x-show="!telegramToken && !discordToken && !(slackBotToken && slackAppToken)" class="text-slate-500">None configured</span>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+
+              <!-- Fun Loading Message -->
+              <div x-show="loading && currentLoadingMessage" class="mb-6 p-4 rounded-xl animated-gradient">
+                <div class="flex items-center gap-3">
+                  <svg class="animate-spin w-6 h-6 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                  <span x-text="currentLoadingMessage" class="text-white font-medium text-lg"></span>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex flex-wrap gap-3 mb-6">
+                <button @click="runSetup()" :disabled="loading" class="px-8 py-4 rounded-xl font-semibold text-white animated-gradient hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-purple-500/20 transition-all">
+                  <span x-show="!loading" class="flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Run Setup
+                  </span>
+                  <span x-show="loading" class="flex items-center gap-2">
+                    <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    Running...
+                  </span>
+                </button>
+                <button @click="openPairingModal()" :disabled="loading" class="px-6 py-4 rounded-xl font-semibold glass hover:bg-purple-500/20 disabled:opacity-50 text-white border border-purple-500/30 hover:scale-[1.02] transition-all">
+                  Approve Pairing
+                </button>
+                <button @click="resetSetup()" :disabled="loading" class="px-6 py-4 rounded-xl font-semibold text-slate-400 hover:text-white hover:bg-slate-800/50 disabled:opacity-50 transition-all">
+                  Reset
+                </button>
+              </div>
+
+              <!-- Output Log -->
+              <div x-show="log" class="glass rounded-xl p-4 font-mono text-xs text-slate-300 whitespace-pre-wrap max-h-64 overflow-y-auto" x-text="log"></div>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="flex justify-between mt-6">
+            <button
+              x-show="step > 1"
+              @click="prevStep()"
+              class="flex items-center gap-2 px-6 py-3 rounded-xl glass hover:bg-purple-500/20 text-white font-medium border border-purple-500/30 transition-all hover:scale-[1.02]"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+              Back
+            </button>
+            <div x-show="step === 1"></div>
+            <button
+              x-show="step < totalSteps"
+              @click="nextStep()"
+              class="flex items-center gap-2 px-6 py-3 rounded-xl animated-gradient hover:scale-[1.02] text-white font-semibold shadow-lg shadow-purple-500/20 transition-all ml-auto"
+            >
+              Next
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pairing Modal -->
+  <div x-show="showPairingModal" x-cloak class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" @click.self="showPairingModal = false">
+    <div class="glass rounded-2xl p-8 w-full max-w-md shadow-2xl border border-purple-500/30">
+      <h3 class="text-2xl font-bold text-white mb-6">Approve Pairing</h3>
+      <div class="space-y-5">
+        <div>
+          <label class="block text-sm font-semibold text-purple-300 mb-3">Channel</label>
+          <select x-model="pairingChannel" class="w-full bg-slate-800/50 border border-purple-500/30 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all">
+            <option value="">Select channel...</option>
+            <option value="telegram">Telegram</option>
+            <option value="discord">Discord</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-purple-300 mb-3">Pairing Code</label>
+          <input x-model="pairingCode" type="text" placeholder="e.g. 3EY4PUYS" class="w-full bg-slate-800/50 border border-purple-500/30 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all" />
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button @click="approvePairing()" class="flex-1 px-6 py-3.5 rounded-xl animated-gradient text-white font-semibold hover:scale-[1.02] shadow-lg shadow-purple-500/20 transition-all">
+            Approve
+          </button>
+          <button @click="showPairingModal = false" class="flex-1 px-6 py-3.5 rounded-xl glass hover:bg-slate-800/50 text-white font-semibold border border-purple-500/30 transition-all">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
