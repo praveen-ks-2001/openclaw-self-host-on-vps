@@ -252,7 +252,19 @@
           "🛸 Beaming down your assistant from the mothership...",
           "🎸 Tuning the AI to play your favorite chords...",
           "🍳 Cooking up something extraordinary...",
-          "🏄 Riding the wave of intelligence..."
+          "🏄 Riding the wave of intelligence...",
+          "🕵️‍♂️ Calibrating the digital sleuth protocols...",
+          "🧬 Synthesizing gigabytes of pure genius...",
+          "🌌 Expanding the assistant's universe...",
+          "🎢 Buckle up, initializing the AI rollercoaster...",
+          "🧩 Snapping the final logic puzzles into place...",
+          "🦸‍♂️ Unlocking the AI's superhero cape...",
+          "🛡️ Raising the digital shields...",
+          "🌋 Harnessing the raw power of the core...",
+          "🌠 Catching a shooting star for your terminal...",
+          "🎙️ Testing the AI microphone... check one, two...",
+          "🎬 Action! Setting the AI stage...",
+          "🧘‍♂️ Teaching the AI some digital zen..."
         ],
 
         completionMessages: [
@@ -267,7 +279,15 @@
           "Let's build something legendary.",
           "Your personal AI is standing by.",
           "The lobster is alive! 🦞",
-          "Setup nailed it. You're up next."
+          "Setup nailed it. You're up next.",
+          "Boom! Your copilot is locked and loaded.",
+          "Houston, we have liftoff. 🚀",
+          "Say hello to your new favorite colleague.",
+          "The matrix is yours to command.",
+          "Spark ignited. The engine is roaring.",
+          "Your digital sanctuary is securely established.",
+          "Welcome to the next level of awesome.",
+          "Grab the wheel, the AI is navigating."
         ],
 
         get currentGroup() {
@@ -622,7 +642,7 @@
     <div class="max-w-[1400px] mx-auto flex py-8 px-6 gap-0">
 
       <!-- LEFT SIDEBAR - pinned to left -->
-      <aside class="hidden lg:block w-64 shrink-0 pr-8">
+      <aside class="hidden lg:block w-80 shrink-0 pr-8">
         <div class="sticky top-[84px]">
           <div class="card !p-5">
             <p class="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] font-semibold mb-5">
@@ -1009,9 +1029,11 @@
     <!-- ===================== MODALS ===================== -->
 
     <!-- Devices Modal -->
-    <div x-show="showDevicesModal" x-cloak class="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+    <div x-show="showDevicesModal" x-cloak
+      class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm"
       @click.self="showDevicesModal = false">
-      <div class="card w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto !border-[var(--color-border)]">
+      <div
+        class="card bg-[var(--color-surface-raised)]/95 backdrop-blur-xl w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto !border-[var(--color-border)] shadow-2xl">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold">Manage Devices</h3>
           <div class="flex items-center gap-2">
@@ -1096,9 +1118,11 @@
     </div>
 
     <!-- Export Info Modal -->
-    <div x-show="showExportInfo" x-cloak class="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+    <div x-show="showExportInfo" x-cloak
+      class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm"
       @click.self="showExportInfo = false">
-      <div class="card w-full max-w-md mx-4 !border-[var(--color-border)]">
+      <div
+        class="card bg-[var(--color-surface-raised)]/95 backdrop-blur-xl w-full max-w-md mx-4 !border-[var(--color-border)] shadow-2xl">
         <h3 class="text-lg font-semibold mb-4">Unzip Instructions</h3>
         <p class="text-sm text-[var(--color-text-secondary)] mb-4">The exported ZIP is password-protected with your
           <strong>SETUP_PASSWORD</strong>.
@@ -1128,9 +1152,11 @@
     </div>
 
     <!-- Pairing Modal -->
-    <div x-show="showPairingModal" x-cloak class="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+    <div x-show="showPairingModal" x-cloak
+      class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm"
       @click.self="showPairingModal = false">
-      <div class="card w-full max-w-sm mx-4 !border-[var(--color-border)]">
+      <div
+        class="card bg-[var(--color-surface-raised)]/95 backdrop-blur-xl w-full max-w-sm mx-4 !border-[var(--color-border)] shadow-2xl">
         <h3 class="text-lg font-semibold mb-4">Approve Channel Access</h3>
         <div class="space-y-4">
           <div>
