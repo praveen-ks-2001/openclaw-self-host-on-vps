@@ -484,6 +484,7 @@ app.get("/setup/api/status", requireSetupAuth, async (_req, res) => {
     channelsAddHelp: channelsHelp,
     authGroups,
     tuiEnabled: ENABLE_WEB_TUI,
+    gatewayToken: OPENCLAW_GATEWAY_TOKEN,
   });
 });
 

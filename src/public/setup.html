@@ -222,6 +222,8 @@
         showPairingModal: false,
         isReady: false,
         tuiEnabled: false,
+        gatewayToken: '',
+        tokenCopied: false,
         exporting: false,
         showExportInfo: false,
         showDevicesModal: false,
@@ -315,6 +317,7 @@
             this.configured = j.configured;
             this.openclawVersion = j.openclawVersion || '';
             this.tuiEnabled = j.tuiEnabled || false;
+            this.gatewayToken = j.gatewayToken || '';
             this.status = j.configured ? 'Configured' : 'Not configured';
 
             if (this.configured) {
@@ -602,6 +605,16 @@
             this.log += '✗ Error: ' + String(e) + '\n';
             this.devicesLoading = false;
           }
+        },
+
+        async copyGatewayToken() {
+          try {
+            await navigator.clipboard.writeText(this.gatewayToken);
+            this.tokenCopied = true;
+            setTimeout(() => { this.tokenCopied = false; }, 2000);
+          } catch (e) {
+            prompt('Copy this token manually:', this.gatewayToken);
+          }
         }
       }));
     });
@@ -662,9 +675,40 @@
               </li>
               <li class="flex items-start gap-3">
                 <span class="step-num">4</span>
+                <p class="text-[13px] text-[var(--color-text-primary)] leading-relaxed">Click <strong>Copy Gateway
+                    Token</strong>, then open <strong>OpenClaw UI</strong></p>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="step-num">5</span>
+                <div class="relative">
+                  <span class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">In the UI, go to
+                    <strong class="text-[var(--color-text-primary)]">Overview</strong> → <strong
+                      class="text-[var(--color-text-primary)]">Gateway Token</strong> and paste</span>
+                  <div class="info-tooltip inline-flex ml-1 relative mt-[1px]">i
+                    <div class="info-tooltip-content" style="top: -10px; left: 24px; width: 260px;">OpenClaw no longer
+                      accepts tokens via URL for security. You must paste the gateway token in the UI's
+                      Overview page to authenticate.</div>
+                  </div>
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="step-num">6</span>
+                <div class="relative">
+                  <span class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">Come back here → <strong
+                      class="text-[var(--color-text-primary)]">Manage Devices</strong> → <strong
+                      class="text-[var(--color-text-primary)]">Approve Latest</strong></span>
+                  <div class="info-tooltip inline-flex ml-1 relative mt-[1px]">i
+                    <div class="info-tooltip-content" style="top: -24px; left: 24px; width: 260px;">Each new browser
+                      needs a one-time device approval. After entering the token and connecting, come back here and approve the pending
+                      request.</div>
+                  </div>
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="step-num">7</span>
                 <div class="relative">
                   <span class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">Added a bot token?
-                    Click <strong class="text-[var(--color-text-primary)]">Approve Pairing</strong> and drop in the
+                    Click <strong class="text-[var(--color-text-primary)]">Approve Channel Access</strong> and drop in the
                     code</span>
                   <div class="info-tooltip inline-flex ml-1 relative mt-[1px]">i
                     <div class="info-tooltip-content" style="top: -10px; left: 24px; width: 260px;">After setup,
@@ -674,25 +718,7 @@
                 </div>
               </li>
               <li class="flex items-start gap-3">
-                <span class="step-num">5</span>
-                <p class="text-[13px] text-[var(--color-text-primary)] leading-relaxed">Launch <strong>OpenClaw
-                    UI</strong> and start chatting</p>
-              </li>
-              <li class="flex items-start gap-3">
-                <span class="step-num">6</span>
-                <div class="relative">
-                  <span class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">New browser? Open
-                    <strong class="text-[var(--color-text-primary)]">Manage Devices</strong> → <strong
-                      class="text-[var(--color-text-primary)]">Approve Latest</strong></span>
-                  <div class="info-tooltip inline-flex ml-1 relative mt-[1px]">i
-                    <div class="info-tooltip-content" style="top: -24px; left: 24px; width: 260px;">Each new browser
-                      needs a one-time device approval. After opening the UI, come back here and approve the pending
-                      request.</div>
-                  </div>
-                </div>
-              </li>
-              <li class="flex items-start gap-3">
-                <span class="step-num">7</span>
+                <span class="step-num">8</span>
                 <p class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">You should see
                   <strong class="text-[var(--color-text-primary)]">Health: OK</strong> in the dashboard
                 </p>
@@ -964,6 +990,14 @@
                 <!-- RIGHT COLUMN: Actions + Danger Zone -->
                 <div class="lg:w-72 shrink-0 space-y-6">
                   <section class="card space-y-3">
+                    <button @click="copyGatewayToken()" class="btn btn-primary w-full">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                      </svg>
+                      <span x-show="!tokenCopied">Copy Gateway Token</span>
+                      <span x-show="tokenCopied" class="text-green-300">✓ Copied!</span>
+                    </button>
                     <a href="/openclaw" target="_blank" class="btn btn-success w-full">
                       Open OpenClaw UI
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -971,19 +1005,23 @@
                           d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                       </svg>
                     </a>
-                    <button @click="openPairingModal()" :disabled="loading" class="btn btn-secondary w-full">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                      </svg>
-                      Approve Channel Access
-                    </button>
+                    <p class="text-[11px] text-[var(--color-text-muted)] leading-relaxed px-1">
+                      Paste the token in the UI → <strong class="text-[var(--color-text-secondary)]">Overview</strong> → <strong class="text-[var(--color-text-secondary)]">Gateway Token</strong> to connect.
+                    </p>
+                    <div class="border-t border-[var(--color-border)] my-1"></div>
                     <button @click="openDevicesModal()" :disabled="loading" class="btn btn-secondary w-full">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
                       Manage Devices
+                    </button>
+                    <button @click="openPairingModal()" :disabled="loading" class="btn btn-secondary w-full">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                      </svg>
+                      Approve Channel Access
                     </button>
                   </section>
 
