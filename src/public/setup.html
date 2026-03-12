@@ -552,9 +552,6 @@
               this.devicesPending = [];
               this.devicesPaired = [];
             }
-            if (j.raw) {
-              this.log += '[devices] ' + j.raw.trim() + '\n';
-            }
           } catch (e) {
             this.log += '✗ Failed to load devices: ' + String(e) + '\n';
           } finally {
