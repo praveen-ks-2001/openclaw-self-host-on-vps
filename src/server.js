@@ -439,8 +439,8 @@ app.get("/setup/api/status", requireSetupAuth, async (_req, res) => {
       label: "MiniMax",
       hint: "M2.1 (recommended)",
       options: [
-        { value: "minimax-api", label: "MiniMax M2.1" },
-        { value: "minimax-api-lightning", label: "MiniMax M2.1 Lightning" },
+        { value: "minimax-global-api", label: "MiniMax M2.1" },
+        { value: "minimax-global-api-lightning", label: "MiniMax M2.1 Lightning" },
       ],
     },
     {
@@ -523,8 +523,8 @@ function buildOnboardArgs(payload) {
       "kimi-code-api-key": "--kimi-code-api-key",
       "gemini-api-key": "--gemini-api-key",
       "zai-api-key": "--zai-api-key",
-      "minimax-api": "--minimax-api-key",
-      "minimax-api-lightning": "--minimax-api-key",
+      "minimax-global-api": "--minimax-api-key",
+      "minimax-global-api-lightning": "--minimax-api-key",
       "synthetic-api-key": "--synthetic-api-key",
       "opencode-zen": "--opencode-zen-api-key",
     };
@@ -571,8 +571,8 @@ const VALID_AUTH_CHOICES = [
   "moonshot-api-key",
   "kimi-code-api-key",
   "zai-api-key",
-  "minimax-api",
-  "minimax-api-lightning",
+  "minimax-global-api",
+  "minimax-global-api-lightning",
   "qwen-portal",
   "github-copilot",
   "copilot-proxy",
