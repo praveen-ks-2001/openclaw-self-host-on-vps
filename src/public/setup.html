@@ -216,6 +216,10 @@
         slackAppToken: '',
         model: '',
         log: '',
+        loginUrl: '',
+        loginCode: '',
+        setupError: '',
+        setupStreamTail: '',
         loading: false,
         pairingChannel: '',
         pairingCode: '',
@@ -296,6 +300,27 @@
           return this.authGroups.find(g => g.value === this.selectedGroup);
         },
 
+        get authRequiresSecret() {
+          return ![
+            'openai-codex',
+            'openai-codex-device-code',
+            'github-copilot'
+          ].includes(this.selectedAuth);
+        },
+
+        get authGuidance() {
+          if (this.selectedAuth === 'openai-codex-device-code') {
+            return 'Run setup, then open the ChatGPT/Codex URL and enter the device code shown in the log.';
+          }
+          if (this.selectedAuth === 'openai-codex') {
+            return 'Browser login needs an interactive terminal to paste the redirect URL. Device pairing is recommended here.';
+          }
+          if (!this.authRequiresSecret) {
+            return 'No API key is needed for this auth method.';
+          }
+          return '';
+        },
+
         async init() {
           await this.refreshStatus();
         },
@@ -373,6 +398,10 @@
         },
 
         async runSetup() {
+          this.loginUrl = '';
+          this.loginCode = '';
+          this.setupError = '';
+          this.setupStreamTail = '';
           const payload = {
             authChoice: this.selectedAuth,
             authSecret: this.authSecret,
@@ -394,17 +423,59 @@
               headers: { 'content-type': 'application/json' },
               body: JSON.stringify(payload)
             });
-            const text = await res.text();
-            let j;
-            try { j = JSON.parse(text); } catch (_e) { j = { ok: false, output: text }; }
-            this.log += (j.output || JSON.stringify(j, null, 2));
+            if (res.body) {
+              const reader = res.body.getReader();
+              const decoder = new TextDecoder();
+              while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                this.processSetupChunk(decoder.decode(value, { stream: true }));
+                this.$nextTick(() => {
+                  const el = this.$refs.setupLog;
+                  if (el) el.scrollTop = el.scrollHeight;
+                });
+              }
+              this.processSetupChunk(decoder.decode());
+            } else {
+              this.processSetupChunk(await res.text());
+            }
+            if (!res.ok && !this.setupError) {
+              this.setupError = 'Setup request failed with HTTP ' + res.status + '.';
+            }
             await this.refreshStatus();
           } catch (e) {
-            this.log += '\nError: ' + String(e) + '\n';
+            this.setupError = 'Setup request failed.';
+            this.processSetupChunk('\nError: ' + String(e) + '\n');
           } finally {
             clearInterval(loadingInterval);
             this.currentLoadingMessage = '';
             this.loading = false;
+          }
+        },
+
+        processSetupChunk(chunk) {
+          if (!chunk) return;
+          this.log += chunk;
+          const scanText = this.setupStreamTail + chunk;
+          this.setupStreamTail = scanText.slice(-1000);
+          this.extractLoginDetails(scanText);
+          this.extractSetupFailure(scanText);
+        },
+
+        extractLoginDetails(text) {
+          const urlMatch = text.match(/https:\/\/auth\.openai\.com\/codex\/device[^\s)]*/);
+          if (urlMatch) this.loginUrl = urlMatch[0];
+
+          const codeMatches = [...text.matchAll(/\bCode:\s*([A-Z0-9][A-Z0-9-]{3,})\b/g)];
+          const visibleCode = codeMatches.map(m => m[1]).find(code => code !== 'shown');
+          if (visibleCode) this.loginCode = visibleCode;
+        },
+
+        extractSetupFailure(text) {
+          if (text.includes('[setup] Internal error')) {
+            this.setupError = 'Setup hit an internal error. Review the log below.';
+          } else if (text.includes('[setup] Failed')) {
+            this.setupError = 'Setup failed. Review the log below.';
           }
         },
 
@@ -727,6 +798,16 @@
           </div>
 
           <div class="mt-4 px-2">
+            <div class="card !p-3 mb-2"
+              style="background: rgba(99,102,241,0.04); border-color: rgba(99,102,241,0.18);">
+              <p class="text-[11px] leading-relaxed text-[var(--color-text-secondary)]">
+                <strong class="text-[var(--color-text-primary)]">Heads up:</strong> this template was updated for
+                OpenClaw <strong>2026.5.x</strong>. Set
+                <code
+                  class="text-[10px] bg-[var(--color-surface-overlay)] px-1 py-0.5 rounded text-[var(--color-text-primary)]">OPENCLAW_VERSION=2026.5.2</code>
+                (or newer) in your Railway env vars before redeploying.
+              </p>
+            </div>
             <div class="text-xs text-[var(--color-text-muted)] text-right pr-2">
               <span x-show="openclawVersion" x-text="'v' + openclawVersion"></span>
             </div>
@@ -769,8 +850,10 @@
                           <option :value="o.value" x-text="o.label + (o.hint ? ' — ' + o.hint : '')"></option>
                         </template>
                       </select>
+                      <p x-show="authGuidance" x-text="authGuidance"
+                        class="text-xs text-[var(--color-text-secondary)] mt-1.5"></p>
                     </div>
-                    <div>
+                    <div x-show="authRequiresSecret">
                       <label
                         class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">API
                         Key / Token</label>
@@ -780,7 +863,8 @@
                     <div>
                       <label
                         class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Model</label>
-                      <input x-model="model" type="text" placeholder="e.g. openai/gpt-4.1, anthropic/claude-sonnet-4"
+                      <input x-model="model" type="text"
+                        placeholder="e.g. anthropic/claude-opus-4-7, minimax/MiniMax-M2.7, openai/gpt-5"
                         class="input-field" />
                       <p class="text-xs text-[var(--color-text-muted)] mt-1.5">Format: provider/model-name</p>
                     </div>
@@ -905,7 +989,29 @@
                     </button>
                     <button @click="resetSetup()" :disabled="loading" class="btn btn-danger">Reset</button>
                   </div>
-                  <div x-show="log" class="log-box" x-text="log"></div>
+
+                  <!-- ChatGPT/Codex OAuth login panel -->
+                  <div x-show="loginUrl || loginCode" x-cloak class="mb-4 rounded-xl p-4"
+                    style="background: linear-gradient(135deg, rgba(63,185,80,0.06), rgba(99,102,241,0.06)); border: 1px solid rgba(63,185,80,0.2);">
+                    <div class="flex flex-col gap-2">
+                      <p class="text-[10px] uppercase tracking-widest text-[var(--color-success)] font-semibold">ChatGPT
+                        Login</p>
+                      <a x-show="loginUrl" :href="loginUrl" target="_blank" rel="noopener noreferrer"
+                        class="text-sm text-[var(--color-text-primary)] underline break-all" x-text="loginUrl"></a>
+                      <div x-show="loginCode" class="flex items-center gap-2">
+                        <span class="text-xs text-[var(--color-text-secondary)]">Code:</span>
+                        <code
+                          class="text-base font-mono font-semibold tracking-widest text-[var(--color-text-primary)] bg-[var(--color-surface-overlay)] px-2 py-1 rounded"
+                          x-text="loginCode"></code>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div x-show="setupError" x-cloak x-text="setupError"
+                    class="mb-4 rounded-xl p-3 border border-[var(--color-danger)]/40 bg-[var(--color-danger)]/10 text-sm text-[var(--color-danger)]">
+                  </div>
+
+                  <div x-show="log" x-ref="setupLog" class="log-box" x-text="log"></div>
                 </section>
               </div>
 
