@@ -2,12 +2,17 @@
 set -e
 
 if [ -z "$OPENCLAW_VERSION" ]; then
-  echo "Error: OPENCLAW_VERSION environment variable is not set"
+  echo "ERROR: OPENCLAW_VERSION env var is required but not set."
   exit 1
 fi
 
-echo "Installing openclaw@v${OPENCLAW_VERSION}..."
-npm install -g "openclaw@v${OPENCLAW_VERSION}"
+INSTALLED=$(node -e "try{console.log(require('/usr/local/lib/node_modules/openclaw/package.json').version)}catch(e){console.log('')}" 2>/dev/null)
+if [ "$INSTALLED" != "$OPENCLAW_VERSION" ]; then
+  echo "Installing openclaw@${OPENCLAW_VERSION} (currently: ${INSTALLED:-none})..."
+  npm install -g openclaw@${OPENCLAW_VERSION}
+else
+  echo "openclaw@${OPENCLAW_VERSION} already installed, skipping."
+fi
 
 chown -R openclaw:openclaw /data
 chmod 700 /data

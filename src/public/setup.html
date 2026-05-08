@@ -12,205 +12,53 @@
   <style type="text/tailwindcss">
     @theme {
       --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
-      --color-surface: #06080f;
-      --color-surface-raised: #0c0f18;
-      --color-surface-overlay: #121620;
-      --color-border: rgba(255, 255, 255, 0.06);
-      --color-border-muted: rgba(255, 255, 255, 0.04);
+      --color-surface: #0d1117;
+      --color-surface-raised: #161b22;
+      --color-surface-overlay: #1c2129;
+      --color-border: #30363d;
+      --color-border-muted: #21262d;
       --color-accent: #e63946;
       --color-accent-hover: #d62836;
       --color-text-primary: #e6edf3;
       --color-text-secondary: #8b949e;
-      --color-text-muted: #4a5568;
+      --color-text-muted: #6e7681;
       --color-success: #3fb950;
       --color-warning: #d29922;
       --color-danger: #f85149;
     }
     [x-cloak] { display: none !important; }
     body { background: var(--color-surface); }
-    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.12); }
-
-    /* Ambient orbs */
-    body::before, body::after {
-      content: ''; position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; opacity: 0.12;
-    }
-    body::before { width: 500px; height: 500px; background: #6366f1; top: -120px; left: -120px; }
-    body::after { width: 400px; height: 400px; background: #e63946; bottom: -100px; right: -100px; }
-
-    /* Step numbers in sidebar */
-    .step-num {
-      width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 600; flex-shrink: 0;
-      background: rgba(255,255,255,0.03); color: var(--color-text-muted); border: 1px solid rgba(255,255,255,0.06);
-      transition: all 0.3s ease;
-    }
-
-    /* Cards with glow-on-hover */
-    .card {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 14px;
-      padding: 24px;
-      position: relative;
-      overflow: visible;
-      transition: border-color 0.4s ease, transform 0.3s ease, box-shadow 0.4s ease;
-    }
-    .card::before {
-      content: '';
-      position: absolute; inset: 0; border-radius: inherit;
-      background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(230, 57, 70, 0.04), transparent 40%);
-      pointer-events: none; z-index: 0; transition: opacity 0.3s;
-    }
-    .card:hover {
-      border-color: rgba(230, 57, 70, 0.15);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 40px -12px rgba(230, 57, 70, 0.08);
-    }
-    .card > * { position: relative; z-index: 1; }
-
-    /* Danger card override */
-    .card[class*="danger"]::before {
-      background: radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(248, 81, 73, 0.05), transparent 40%);
-    }
-    .card[class*="danger"]:hover {
-      border-color: rgba(248, 81, 73, 0.25) !important;
-      box-shadow: 0 8px 40px -12px rgba(248, 81, 73, 0.1);
-    }
-
-    /* Input fields */
-    .input-field {
-      width: 100%; background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.07); border-radius: 10px;
-      padding: 11px 14px; font-size: 14px; color: var(--color-text-primary); outline: none;
-      transition: border-color 0.3s, box-shadow 0.3s;
-    }
-    .input-field::placeholder { color: rgba(100, 116, 139, 0.6); }
-    .input-field:focus {
-      border-color: rgba(230, 57, 70, 0.5);
-      box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.08);
-    }
-    select.input-field {
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236e7681' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;
-      color-scheme: dark;
-    }
-    select.input-field option {
-      background-color: var(--color-surface-raised);
-      color: var(--color-text-primary);
-      padding: 8px 12px;
-    }
-    select.input-field option:checked,
-    select.input-field option:hover {
-      background-color: var(--color-surface-overlay);
-      color: var(--color-text-primary);
-    }
-    select.input-field option:disabled {
-      color: var(--color-text-muted);
-    }
-
-    /* Buttons */
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 500;
-      cursor: pointer; transition: all 0.25s ease; border: none;
-    }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
-    .btn-primary {
-      background: linear-gradient(135deg, #e63946, #d62836);
-      color: #fff;
-      box-shadow: 0 4px 16px -4px rgba(230, 57, 70, 0.35);
-    }
-    .btn-primary:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 24px -4px rgba(230, 57, 70, 0.45);
-    }
-    .btn-secondary {
-      background: rgba(255,255,255,0.03); color: var(--color-text-primary);
-      border: 1px solid rgba(255,255,255,0.07);
-    }
-    .btn-secondary:hover:not(:disabled) {
-      background: rgba(255,255,255,0.06);
-      border-color: rgba(255,255,255,0.12);
-      transform: translateY(-1px);
-    }
-    .btn-danger {
-      background: transparent; color: var(--color-danger);
-      border: 1px solid rgba(248, 81, 73, 0.3);
-    }
-    .btn-danger:hover:not(:disabled) {
-      background: var(--color-danger); color: #fff;
-      box-shadow: 0 4px 16px -4px rgba(248, 81, 73, 0.35);
-      transform: translateY(-1px);
-    }
-    .btn-success {
-      background: linear-gradient(135deg, #238636, #2ea043);
-      color: #fff;
-      box-shadow: 0 4px 16px -4px rgba(35, 134, 54, 0.35);
-    }
-    .btn-success:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 24px -4px rgba(35, 134, 54, 0.45);
-    }
-
-    /* Section numbers */
-    .section-number {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: linear-gradient(135deg, #e63946, #d62836);
-      color: #fff; display: flex; align-items: center; justify-content: center;
-      font-size: 14px; font-weight: 600; flex-shrink: 0;
-      box-shadow: 0 0 16px -2px rgba(230, 57, 70, 0.3);
-    }
-
-    /* Log box */
-    .log-box {
-      background: rgba(0,0,0,0.25);
-      border: 1px solid rgba(255,255,255,0.04); border-radius: 10px;
-      padding: 16px;
-      font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
-      font-size: 12px; color: var(--color-text-secondary);
-      white-space: pre-wrap; max-height: 400px; overflow-y: auto;
-    }
-
-    /* Tooltips */
-    .info-tooltip {
-      position: relative; display: inline-flex; align-items: center; justify-content: center;
-      width: 16px; height: 16px; border-radius: 50%;
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-      color: var(--color-text-muted); font-size: 10px; font-weight: 700;
-      cursor: help; flex-shrink: 0; transition: all 0.2s;
-    }
-    .info-tooltip:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); }
+    ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+    .step-num { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; background: var(--color-surface-overlay); color: var(--color-text-muted); border: 1px solid var(--color-border); }
+    .card { background: var(--color-surface-raised); border: 1px solid var(--color-border-muted); border-radius: 12px; padding: 24px; }
+    .input-field { width: 100%; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px; padding: 10px 14px; font-size: 14px; color: var(--color-text-primary); outline: none; transition: border-color 0.2s; }
+    .input-field::placeholder { color: var(--color-text-muted); }
+    .input-field:focus { border-color: var(--color-accent); }
+    select.input-field { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238b949e' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: none; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: var(--color-accent); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--color-accent-hover); }
+    .btn-secondary { background: var(--color-surface-overlay); color: var(--color-text-primary); border: 1px solid var(--color-border); }
+    .btn-secondary:hover:not(:disabled) { background: var(--color-border-muted); }
+    .btn-danger { background: transparent; color: var(--color-danger); border: 1px solid var(--color-danger); }
+    .btn-danger:hover:not(:disabled) { background: var(--color-danger); color: #fff; }
+    .btn-danger-solid { background: var(--color-danger); color: #fff; }
+    .btn-danger-solid:hover:not(:disabled) { background: #d8463d; }
+    .btn-warning { background: transparent; color: var(--color-warning); border: 1px solid var(--color-warning); }
+    .btn-warning:hover:not(:disabled) { background: var(--color-warning); color: #1a1407; }
+    .btn-success { background: #238636; color: #fff; }
+    .btn-success:hover:not(:disabled) { background: #2ea043; }
+    .btn-tui { background: #6e40c9; color: #fff; }
+    .btn-tui:hover:not(:disabled) { background: #3d51aa; }
+    .section-number { width: 32px; height: 32px; border-radius: 50%; background: var(--color-accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; flex-shrink: 0; }
+    .log-box { background: var(--color-surface); border: 1px solid var(--color-border-muted); border-radius: 8px; padding: 16px; font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace; font-size: 12px; color: var(--color-text-secondary); white-space: pre-wrap; max-height: 400px; overflow-y: auto; }
+    .info-tooltip { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: var(--color-surface-overlay); border: 1px solid var(--color-border); color: var(--color-text-muted); font-size: 10px; font-weight: 700; cursor: help; flex-shrink: 0; }
     .info-tooltip:hover .info-tooltip-content { display: block; }
-    .info-tooltip-content {
-      display: none; position: absolute; left: 24px; top: -8px; width: 240px;
-      background: #1a1e2e;
-      border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
-      padding: 10px 12px; font-size: 12px; font-weight: 400;
-      color: var(--color-text-secondary); line-height: 1.5; z-index: 50;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-    }
-
-    /* Smooth global transitions */
-    *, *::before, *::after {
-      transition-property: color, background-color, border-color, box-shadow, opacity, transform;
-      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-      transition-duration: 200ms;
-    }
+    .info-tooltip-content { display: none; position: absolute; left: 24px; top: -8px; width: 240px; background: var(--color-surface-raised); border: 1px solid var(--color-border); border-radius: 8px; padding: 10px 12px; font-size: 12px; font-weight: 400; color: var(--color-text-secondary); line-height: 1.5; z-index: 50; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
   </style>
-  <script>
-    // Mouse-tracking glow for cards
-    document.addEventListener('mousemove', (e) => {
-      document.querySelectorAll('.card').forEach(card => {
-        const rect = card.getBoundingClientRect();
-        card.style.setProperty('--mouse-x', (e.clientX - rect.left) + 'px');
-        card.style.setProperty('--mouse-y', (e.clientY - rect.top) + 'px');
-      });
-    });
-  </script>
   <script>
     document.addEventListener('alpine:init', () => {
       Alpine.data('setupApp', () => ({
@@ -230,18 +78,12 @@
         slackAppToken: '',
         model: '',
         log: '',
-        loginUrl: '',
-        loginCode: '',
-        setupError: '',
-        setupStreamTail: '',
         loading: false,
         pairingChannel: '',
         pairingCode: '',
         showPairingModal: false,
         isReady: false,
         tuiEnabled: false,
-        gatewayToken: '',
-        tokenCopied: false,
         exporting: false,
         showExportInfo: false,
         showDevicesModal: false,
@@ -249,90 +91,81 @@
         devices: [],
         devicesPending: [],
         devicesPaired: [],
-        currentLoadingMessage: '',
-        currentCompletionMessage: '',
+        gatewayTokenCopied: false,
+        gatewayToken: '',
+        loginUrl: '',
+        loginCode: '',
+        setupStreamTail: '',
+        setupError: '',
+        showWipeModal: false,
+        wipePassword: '',
+        wipeError: '',
+        wiping: false,
+        showImportModal: false,
+        importFile: null,
+        importPhase: 'idle', // 'idle' | 'probing' | 'awaiting-zip-password' | 'awaiting-confirm' | 'applying'
+        importStagingId: '',
+        importManifest: null,
+        importZipPassword: '',
+        importSetupPassword: '',
+        importError: '',
+        importInfo: '',
+        customBaseUrl: '',
+        customModelId: '',
+        customCompatibility: 'openai',
+        cloudflareAccountId: '',
+        cloudflareGatewayId: '',
 
-        loadingMessages: [
-          "🦞 Waking up the lobster...",
-          "☕ Brewing your AI assistant while you grab a coffee...",
-          "🚀 Strapping rockets to your AI companion...",
-          "🧠 Wiring up some serious neural pathways...",
-          "⚡ Charging up the AI superpowers...",
-          "🎨 Splashing some AI magic on the canvas...",
-          "🔮 Summoning digital sorcery...",
-          "🎯 Dialing in the precision lasers...",
-          "🌟 Dusting the setup with stardust...",
-          "🏗️ Assembling your AI fortress...",
-          "🎭 Coaching AI in the art of banter...",
-          "🔧 Tightening the last bolts on your engine...",
-          "🌈 Injecting some color into the matrix...",
-          "💎 Buffing your assistant to a mirror shine...",
-          "🎪 Orchestrating the AI circus... the good kind!",
-          "🧬 Splicing together some genius DNA...",
-          "🛸 Beaming down your assistant from the mothership...",
-          "🎸 Tuning the AI to play your favorite chords...",
-          "🍳 Cooking up something extraordinary...",
-          "🏄 Riding the wave of intelligence...",
-          "🕵️‍♂️ Calibrating the digital sleuth protocols...",
-          "🧬 Synthesizing gigabytes of pure genius...",
-          "🌌 Expanding the assistant's universe...",
-          "🎢 Buckle up, initializing the AI rollercoaster...",
-          "🧩 Snapping the final logic puzzles into place...",
-          "🦸‍♂️ Unlocking the AI's superhero cape...",
-          "🛡️ Raising the digital shields...",
-          "🌋 Harnessing the raw power of the core...",
-          "🌠 Catching a shooting star for your terminal...",
-          "🎙️ Testing the AI microphone... check one, two...",
-          "🎬 Action! Setting the AI stage...",
-          "🧘‍♂️ Teaching the AI some digital zen..."
-        ],
+        get authRequiresSecret() {
+          const noSecretChoices = new Set([
+            'openai-codex-device-code',
+            'google-gemini-cli',
+            'github-copilot',
+            'copilot-proxy',
+            'minimax-global-oauth',
+            'minimax-cn-oauth',
+            'chutes',
+            'ollama',
+            'vllm',
+            'sglang',
+          ]);
+          return !noSecretChoices.has(this.selectedAuth);
+        },
 
-        completionMessages: [
-          "Curious what this thing can do?",
-          "All systems go — ready to fly?",
-          "Your AI wingman just clocked in!",
-          "The future called. It's running on your machine now.",
-          "Time to unleash the claw!",
-          "Brain upgrade: installed.",
-          "Ready to take over the coding world?",
-          "Engines hot. Awaiting your command.",
-          "Let's build something legendary.",
-          "Your personal AI is standing by.",
-          "The lobster is alive! 🦞",
-          "Setup nailed it. You're up next.",
-          "Boom! Your copilot is locked and loaded.",
-          "Houston, we have liftoff. 🚀",
-          "Say hello to your new favorite colleague.",
-          "The matrix is yours to command.",
-          "Spark ignited. The engine is roaring.",
-          "Your digital sanctuary is securely established.",
-          "Welcome to the next level of awesome.",
-          "Grab the wheel, the AI is navigating."
-        ],
+        get isCustomEndpointChoice() {
+          return this.selectedAuth === 'custom-api-key';
+        },
+
+        get isCloudflareGatewayChoice() {
+          return this.selectedAuth === 'cloudflare-ai-gateway-api-key';
+        },
+
+        get authHelp() {
+          switch (this.selectedAuth) {
+            case 'openai-codex-device-code':
+              return 'No API key needed. After clicking Run Setup, a ChatGPT login URL and code will appear below.';
+            case 'google-gemini-cli':
+              return 'OAuth via Google. The CLI will print a sign-in URL during onboarding.';
+            case 'github-copilot':
+              return 'GitHub device login. Open the URL printed during onboarding and approve the device code.';
+            case 'copilot-proxy':
+              return 'Uses a local Copilot proxy. No remote API key needed.';
+            case 'minimax-global-oauth':
+            case 'minimax-cn-oauth':
+              return 'OAuth via MiniMax. Sign-in URL will appear during onboarding.';
+            case 'chutes':
+              return 'Free-tier OAuth flow. Sign in via the URL printed during onboarding.';
+            case 'ollama':
+            case 'vllm':
+            case 'sglang':
+              return 'Self-hosted runtime. Make sure the server is reachable from this container.';
+            default:
+              return '';
+          }
+        },
 
         get currentGroup() {
           return this.authGroups.find(g => g.value === this.selectedGroup);
-        },
-
-        get authRequiresSecret() {
-          return ![
-            'openai-codex',
-            'openai-codex-device-code',
-            'github-copilot'
-          ].includes(this.selectedAuth);
-        },
-
-        get authGuidance() {
-          if (this.selectedAuth === 'openai-codex-device-code') {
-            return 'Run setup, then open the ChatGPT/Codex URL and enter the device code shown in the log.';
-          }
-          if (this.selectedAuth === 'openai-codex') {
-            return 'Browser login needs an interactive terminal to paste the redirect URL. Device pairing is recommended here.';
-          }
-          if (!this.authRequiresSecret) {
-            return 'No API key is needed for this auth method.';
-          }
-          return '';
         },
 
         async init() {
@@ -357,13 +190,7 @@
             this.openclawVersion = j.openclawVersion || '';
             this.tuiEnabled = j.tuiEnabled || false;
             this.gatewayToken = j.gatewayToken || '';
-            this.status = j.configured ? 'Configured' : 'Not configured';
-
-            if (this.configured) {
-              this.currentCompletionMessage = this.completionMessages[Math.floor(Math.random() * this.completionMessages.length)];
-              this.step = 4;
-            }
-
+            this.status = j.configured ? 'Configured - open /openclaw' : 'Not configured - run setup below';
             this.authGroups = j.authGroups || [];
             if (this.authGroups.length > 0) {
               this.selectedGroup = this.authGroups[0].value;
@@ -387,22 +214,6 @@
           }
         },
 
-        startLoadingMessages() {
-          const shuffled = [...this.loadingMessages].sort(() => Math.random() - 0.5);
-          const messagesToShow = shuffled.slice(0, 3 + Math.floor(Math.random() * 2));
-          let index = 0;
-          this.currentLoadingMessage = messagesToShow[0];
-          const interval = setInterval(() => {
-            index++;
-            if (index < messagesToShow.length) {
-              this.currentLoadingMessage = messagesToShow[index];
-            } else {
-              clearInterval(interval);
-            }
-          }, 10000);
-          return interval;
-        },
-
         nextStep() {
           if (this.step < this.totalSteps) this.step++;
         },
@@ -420,6 +231,11 @@
             authChoice: this.selectedAuth,
             authSecret: this.authSecret,
             model: this.model,
+            customBaseUrl: this.customBaseUrl,
+            customModelId: this.customModelId,
+            customCompatibility: this.customCompatibility,
+            cloudflareAccountId: this.cloudflareAccountId,
+            cloudflareGatewayId: this.cloudflareGatewayId,
             telegramToken: this.telegramToken,
             discordToken: this.discordToken,
             slackBotToken: this.slackBotToken,
@@ -428,7 +244,6 @@
 
           this.log = 'Running...\n';
           this.loading = true;
-          const loadingInterval = this.startLoadingMessages();
 
           try {
             const res = await fetch('/setup/api/run', {
@@ -444,10 +259,6 @@
                 const { value, done } = await reader.read();
                 if (done) break;
                 this.processSetupChunk(decoder.decode(value, { stream: true }));
-                this.$nextTick(() => {
-                  const el = this.$refs.setupLog;
-                  if (el) el.scrollTop = el.scrollHeight;
-                });
               }
               this.processSetupChunk(decoder.decode());
             } else {
@@ -461,8 +272,6 @@
             this.setupError = 'Setup request failed.';
             this.processSetupChunk('\nError: ' + String(e) + '\n');
           } finally {
-            clearInterval(loadingInterval);
-            this.currentLoadingMessage = '';
             this.loading = false;
           }
         },
@@ -479,7 +288,6 @@
         extractLoginDetails(text) {
           const urlMatch = text.match(/https:\/\/auth\.openai\.com\/codex\/device[^\s)]*/);
           if (urlMatch) this.loginUrl = urlMatch[0];
-
           const codeMatches = [...text.matchAll(/\bCode:\s*([A-Z0-9][A-Z0-9-]{3,})\b/g)];
           const visibleCode = codeMatches.map(m => m[1]).find(code => code !== 'shown');
           if (visibleCode) this.loginCode = visibleCode;
@@ -539,8 +347,8 @@
         },
 
         async resetSetup() {
-          if (!confirm('Reset setup? This deletes the config file so onboarding can run again.')) return;
-          this.log = 'Resetting...\n';
+          if (!confirm('Reset configuration? This deletes openclaw.json so you can re-run setup. Chat history, credentials, and paired devices stay intact.')) return;
+          this.log = 'Resetting configuration...\n';
           this.loading = true;
 
           try {
@@ -552,6 +360,150 @@
             this.log += 'Error: ' + String(e) + '\n';
           } finally {
             this.loading = false;
+          }
+        },
+
+        openWipeModal() {
+          this.wipePassword = '';
+          this.wipeError = '';
+          this.showWipeModal = true;
+        },
+
+        async wipeData() {
+          this.wipeError = '';
+          if (!this.wipePassword) {
+            this.wipeError = 'Enter your SETUP_PASSWORD to confirm.';
+            return;
+          }
+          this.wiping = true;
+          try {
+            const res = await fetch('/setup/api/wipe', {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ password: this.wipePassword }),
+            });
+            let payload = null;
+            try { payload = await res.json(); } catch { /* ignore parse error */ }
+            if (!res.ok || !payload?.ok) {
+              this.wipeError = payload?.error || 'Wipe failed (HTTP ' + res.status + ').';
+              return;
+            }
+            this.log = 'All data wiped. Reloading...\n';
+            this.showWipeModal = false;
+            this.wipePassword = '';
+            setTimeout(() => window.location.reload(), 800);
+          } catch (e) {
+            this.wipeError = 'Wipe request failed: ' + String(e);
+          } finally {
+            this.wiping = false;
+          }
+        },
+
+        openImportModal() {
+          this.importFile = null;
+          this.importPhase = 'idle';
+          this.importStagingId = '';
+          this.importManifest = null;
+          this.importZipPassword = '';
+          this.importSetupPassword = '';
+          this.importError = '';
+          this.importInfo = '';
+          this.showImportModal = true;
+        },
+
+        closeImportModal() {
+          if (this.importPhase === 'applying') return; // don't allow dismiss while applying
+          this.showImportModal = false;
+        },
+
+        onImportFileSelected(event) {
+          const file = event?.target?.files?.[0];
+          this.importFile = file || null;
+          this.importStagingId = '';
+          this.importManifest = null;
+          this.importZipPassword = '';
+          this.importError = '';
+          this.importInfo = '';
+          this.importPhase = 'idle';
+        },
+
+        async probeImport() {
+          if (!this.importFile) {
+            this.importError = 'Pick a ZIP file first.';
+            return;
+          }
+          this.importError = '';
+          this.importInfo = '';
+          this.importPhase = 'probing';
+          try {
+            const url = '/setup/api/import/probe' + (this.importZipPassword
+              ? ('?password=' + encodeURIComponent(this.importZipPassword))
+              : '');
+            const res = await fetch(url, {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: { 'content-type': 'application/zip' },
+              body: this.importFile,
+            });
+            let payload = null;
+            try { payload = await res.json(); } catch { /* parse error */ }
+            if (res.status === 401 && payload?.needsPassword) {
+              this.importStagingId = payload.stagingId || '';
+              this.importPhase = 'awaiting-zip-password';
+              this.importError = '';
+              this.importInfo = payload.error || 'Enter the password used when this archive was exported.';
+              return;
+            }
+            if (!res.ok || !payload?.ok) {
+              this.importPhase = this.importZipPassword ? 'awaiting-zip-password' : 'idle';
+              this.importError = payload?.error || ('Probe failed (HTTP ' + res.status + ').');
+              return;
+            }
+            this.importStagingId = payload.stagingId;
+            this.importManifest = payload.manifest;
+            this.importPhase = 'awaiting-confirm';
+            this.importInfo = '';
+          } catch (e) {
+            this.importPhase = 'idle';
+            this.importError = 'Upload failed: ' + String(e);
+          }
+        },
+
+        async applyImport() {
+          if (!this.importStagingId) {
+            this.importError = 'No staged import — re-upload the file.';
+            return;
+          }
+          if (!this.importSetupPassword) {
+            this.importError = 'Re-enter your SETUP_PASSWORD to confirm.';
+            return;
+          }
+          this.importError = '';
+          this.importPhase = 'applying';
+          try {
+            const res = await fetch('/setup/api/import/apply', {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({
+                stagingId: this.importStagingId,
+                setupPassword: this.importSetupPassword,
+              }),
+            });
+            let payload = null;
+            try { payload = await res.json(); } catch { /* parse error */ }
+            if (!res.ok || !payload?.ok) {
+              this.importPhase = 'awaiting-confirm';
+              this.importError = payload?.error || ('Import failed (HTTP ' + res.status + ').');
+              return;
+            }
+            this.log = 'Import complete. Reloading...\n';
+            this.importInfo = 'Import complete. Reloading…';
+            setTimeout(() => window.location.reload(), 1000);
+          } catch (e) {
+            this.importPhase = 'awaiting-confirm';
+            this.importError = 'Apply request failed: ' + String(e);
           }
         },
 
@@ -690,16 +642,6 @@
             this.log += '✗ Error: ' + String(e) + '\n';
             this.devicesLoading = false;
           }
-        },
-
-        async copyGatewayToken() {
-          try {
-            await navigator.clipboard.writeText(this.gatewayToken);
-            this.tokenCopied = true;
-            setTimeout(() => { this.tokenCopied = false; }, 2000);
-          } catch (e) {
-            prompt('Copy this token manually:', this.gatewayToken);
-          }
         }
       }));
     });
@@ -712,7 +654,7 @@
   <!-- STICKY TOP BAR -->
   <header
     class="fixed top-0 left-0 right-0 z-30 bg-[var(--color-surface)]/90 backdrop-blur-md border-b border-[var(--color-border-muted)] flex justify-center">
-    <div class="w-full max-w-[1400px] px-6 py-3 flex items-center justify-between">
+    <div class="w-full max-w-6xl px-6 py-3 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <img src="https://res.cloudinary.com/asset-cloudinary/image/upload/v1769907898/openclaw-logo-text_w3qcgl.avif"
           alt="OpenClaw" class="h-7">
@@ -734,94 +676,117 @@
   </header>
 
   <div class="pt-[52px] min-h-screen">
-    <div class="max-w-[1400px] mx-auto flex py-8 px-6 gap-0">
+    <!-- Center Wrapper -->
+    <div class="max-w-6xl mx-auto flex py-8 px-6 gap-8">
 
-      <!-- LEFT SIDEBAR - pinned to left -->
-      <aside class="hidden lg:block w-80 shrink-0 pr-8 relative z-20">
+      <!-- LEFT SIDEBAR - step guide -->
+      <aside class="hidden lg:block w-72 lg:w-80 shrink-0">
         <div class="sticky top-[84px]">
           <div class="card !p-5">
-            <p class="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] font-semibold mb-5">
-              Getting Started</p>
+            <p class="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] font-semibold mb-5">How to
+              Setup</p>
             <ol class="space-y-4 z-10">
               <li class="flex items-start gap-3">
                 <span class="step-num">1</span>
-                <p class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">Pick your <strong
-                    class="text-[var(--color-text-primary)]">AI provider</strong> and paste your credentials</p>
+                <p class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">Select your <strong
+                    class="text-[var(--color-text-primary)]">provider & auth type</strong>, then paste your API key</p>
               </li>
               <li class="flex items-start gap-3">
                 <span class="step-num">2</span>
-                <p class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">Hook up <strong
-                    class="text-[var(--color-text-primary)]">messaging channels</strong> (skip if you want)</p>
+                <p class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">Add <strong
+                    class="text-[var(--color-text-primary)]">channels</strong> (optional — can be done later)</p>
               </li>
               <li class="flex items-start gap-3">
                 <span class="step-num">3</span>
-                <p class="text-[13px] text-[var(--color-text-primary)] leading-relaxed">Hit <strong>Run
-                    Setup</strong> and watch the magic</p>
+                <p class="text-[13px] text-[var(--color-text-primary)] leading-relaxed">Click <strong
+                    class="text-[var(--color-text-primary)]">Run Setup</strong></p>
               </li>
               <li class="flex items-start gap-3">
                 <span class="step-num">4</span>
-                <p class="text-[13px] text-[var(--color-text-primary)] leading-relaxed">Click <strong>Copy Gateway
-                    Token</strong>, then open <strong>OpenClaw UI</strong></p>
+                <p class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">Click <strong
+                    class="text-[var(--color-text-primary)]">Copy Gateway Token</strong></p>
               </li>
               <li class="flex items-start gap-3">
                 <span class="step-num">5</span>
-                <div class="relative">
-                  <span class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">In the UI, go to
-                    <strong class="text-[var(--color-text-primary)]">Overview</strong> → <strong
-                      class="text-[var(--color-text-primary)]">Gateway Token</strong> and paste</span>
-                  <div class="info-tooltip inline-flex ml-1 relative mt-[1px]">i
-                    <div class="info-tooltip-content" style="top: -10px; left: 24px; width: 260px;">OpenClaw no longer
-                      accepts tokens via URL for security. You must paste the gateway token in the UI's
-                      Overview page to authenticate.</div>
-                  </div>
-                </div>
+                <p class="text-[13px] text-[var(--color-text-primary)] leading-relaxed">Click <strong
+                    class="text-[var(--color-text-primary)]">Open OpenClaw UI</strong></p>
               </li>
               <li class="flex items-start gap-3">
                 <span class="step-num">6</span>
                 <div class="relative">
-                  <span class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">Come back here → <strong
-                      class="text-[var(--color-text-primary)]">Pair Devices</strong> → <strong
-                      class="text-[var(--color-text-primary)]">Approve Latest</strong></span>
+                  <span class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">The
+                    <strong class="text-[var(--color-text-primary)]">Gateway Token</strong> is usually filled in
+                    automatically. If it's empty in <strong class="text-[var(--color-text-primary)]">Overview</strong>,
+                    paste the copied token there.</span>
                   <div class="info-tooltip inline-flex ml-1 relative mt-[1px]">i
-                    <div class="info-tooltip-content" style="top: -24px; left: 24px; width: 260px;">Each new browser
-                      needs a one-time device approval. After entering the token and connecting, come back here and approve the pending
-                      request.</div>
+                    <div class="info-tooltip-content" style="top: -10px; left: 24px; width: 260px;">The wrapper injects
+                      the token automatically on most builds. Only paste it manually under Overview → Gateway Token if
+                      that field is empty when the OpenClaw UI loads.</div>
                   </div>
                 </div>
               </li>
               <li class="flex items-start gap-3">
                 <span class="step-num">7</span>
                 <div class="relative">
-                  <span class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">Added a bot token?
-                    Click <strong class="text-[var(--color-text-primary)]">Approve Channel Access</strong> and drop in the
-                    code</span>
+                  <span class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">Go to
+                    <strong class="text-[var(--color-text-primary)]">Pair Devices</strong> → <strong
+                      class="text-[var(--color-text-primary)]">Approve</strong> the pairing request</span>
                   <div class="info-tooltip inline-flex ml-1 relative mt-[1px]">i
-                    <div class="info-tooltip-content" style="top: -10px; left: 24px; width: 260px;">After setup,
-                      message your bot on the channel (e.g. send "hey"). It will reply with a pairing code. Enter that
-                      here to grant DM access.</div>
+                    <div class="info-tooltip-content" style="top: -24px; left: 24px; width: 260px;">New browsers need a
+                      one-time device approval. After opening the OpenClaw UI, go to Pair Devices and approve the pending request.</div>
                   </div>
                 </div>
               </li>
               <li class="flex items-start gap-3">
                 <span class="step-num">8</span>
-                <p class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">Refresh the page after pairing — you should see
-                  <strong class="text-[var(--color-text-primary)]">Health: OK</strong> in the dashboard
+                <div class="relative">
+                  <span class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">If you added a channel
+                    token, click <strong class="text-[var(--color-text-primary)]">Approve Channel Access</strong> and enter the
+                    code</span>
+                  <div class="info-tooltip inline-flex ml-1 relative mt-[1px]">i
+                    <div class="info-tooltip-content" style="top: -10px; left: 24px; width: 260px;">After setup, message
+                      your bot on the channel (e.g. send "hey"). It will reply with a pairing code. Enter that code here
+                      to grant DM access. If no code appears, try restarting the bot.</div>
+                  </div>
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="step-num">9</span>
+                <p class="text-[13px] text-[var(--color-text-secondary)] leading-relaxed">You should now see
+                  <strong class="text-[var(--color-text-primary)]">Health: OK</strong> in the OpenClaw UI
                 </p>
               </li>
             </ol>
           </div>
 
-          <div class="mt-4 px-2">
-            <div class="card !p-3 mb-2"
-              style="background: rgba(99,102,241,0.04); border-color: rgba(99,102,241,0.18);">
-              <p class="text-[11px] leading-relaxed text-[var(--color-text-secondary)]">
-                <strong class="text-[var(--color-text-primary)]">Heads up:</strong> this template was updated for
-                OpenClaw <strong>2026.5.x</strong>. Set
-                <code
-                  class="text-[10px] bg-[var(--color-surface-overlay)] px-1 py-0.5 rounded text-[var(--color-text-primary)]">OPENCLAW_VERSION=2026.5.2</code>
-                (or newer) in your Railway env vars before redeploying.
-              </p>
+          <div class="mt-4 p-3 rounded-lg bg-[var(--color-warning)]/10 border border-[var(--color-warning)]/30">
+            <p class="text-[11px] uppercase tracking-widest text-[var(--color-warning)] font-semibold mb-1.5">Heads up</p>
+            <p class="text-[12px] text-[var(--color-text-secondary)] leading-relaxed">
+              Set <code class="text-[11px] bg-[var(--color-surface-overlay)] px-1 py-0.5 rounded text-[var(--color-text-primary)]">OPENCLAW_VERSION</code> to <strong class="text-[var(--color-text-primary)]">2026.5.X</strong> or newer in your Railway env vars. This template has been updated for the latest OpenClaw releases.
+            </p>
+          </div>
+
+          <div class="mt-4 p-3 rounded-lg bg-[var(--color-surface-raised)] border border-[var(--color-border-muted)]">
+            <div class="flex items-center gap-2 text-[12px] text-[var(--color-text-secondary)]">
+              <span>Made by</span>
+              <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/heimdall-light.svg"
+                alt="Heimdall" class="w-4 h-4" />
+              <span class="font-medium text-[var(--color-text-primary)]">Heimdall</span>
+              <span>with</span>
+              <span class="text-[var(--color-accent)]">❤</span>
             </div>
+            <a href="https://github.com/praveen-ks-2001/openclaw-railway-template-new/issues"
+              target="_blank" rel="noopener noreferrer"
+              class="mt-2 flex items-center gap-1.5 text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-accent)] transition-colors">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+              </svg>
+              <span>Found an issue? Report it on GitHub →</span>
+            </a>
+          </div>
+
+          <div class="mt-3 px-2">
             <div class="text-xs text-[var(--color-text-muted)] text-right pr-2">
               <span x-show="openclawVersion" x-text="'v' + openclawVersion"></span>
             </div>
@@ -830,231 +795,225 @@
       </aside>
 
       <!-- MAIN CONTENT AREA -->
-      <main class="flex-1 w-full">
-        <div class="space-y-8 max-w-3xl">
+      <main class="flex-1 w-full max-w-3xl">
+        <div class="px-6 space-y-8">
 
-          <!-- ===================== PRE-SETUP: 3-STEP WIZARD ===================== -->
+          <!-- ===================== PRE-SETUP VIEW ===================== -->
           <template x-if="isReady && !configured">
-            <div>
-              <!-- Step 1: Model / Auth Provider -->
-              <div x-show="step === 1" x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
-                <section class="card">
-                  <div class="flex items-center gap-3 mb-6">
-                    <span class="section-number">1</span>
-                    <h2 class="text-lg font-semibold">Model / Auth Provider</h2>
+            <div class="space-y-8">
+
+              <!-- SECTION 1: Model / Auth Provider -->
+              <section class="card">
+                <div class="flex items-center gap-3 mb-6">
+                  <span class="section-number">1</span>
+                  <h2 class="text-lg font-semibold">Model / Auth Provider</h2>
+                </div>
+                <div class="space-y-5">
+                  <div>
+                    <label
+                      class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Provider
+                      Group</label>
+                    <select x-model="selectedGroup" @change="updateAuthChoices()" class="input-field">
+                      <template x-for="g in authGroups" :key="g.value">
+                        <option :value="g.value" x-text="g.label + (g.hint ? ' — ' + g.hint : '')"></option>
+                      </template>
+                    </select>
                   </div>
-                  <div class="space-y-5">
+                  <div>
+                    <label
+                      class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Auth
+                      Method</label>
+                    <select x-model="selectedAuth" class="input-field">
+                      <template x-for="o in authChoices" :key="o.value">
+                        <option :value="o.value" x-text="o.label + (o.hint ? ' — ' + o.hint : '')"></option>
+                      </template>
+                    </select>
+                  </div>
+                  <div x-show="authRequiresSecret">
+                    <label
+                      class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">API
+                      Key / Token</label>
+                    <input x-model="authSecret" type="password" placeholder="Paste your API key or token"
+                      class="input-field" />
+                  </div>
+                  <div x-show="authHelp"
+                    class="bg-[var(--color-surface)] border border-[var(--color-border-muted)] rounded-lg p-3 text-xs text-[var(--color-text-secondary)] leading-relaxed"
+                    x-text="authHelp"></div>
+                  <div x-show="isCustomEndpointChoice" class="space-y-3">
                     <div>
                       <label
-                        class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Provider
-                        Group</label>
-                      <select x-model="selectedGroup" @change="updateAuthChoices()" class="input-field">
-                        <template x-for="g in authGroups" :key="g.value">
-                          <option :value="g.value" x-text="g.label + (g.hint ? ' — ' + g.hint : '')"></option>
-                        </template>
-                      </select>
+                        class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Custom
+                        base URL</label>
+                      <input x-model="customBaseUrl" type="text" placeholder="https://your-host.example.com/v1"
+                        class="input-field" />
                     </div>
                     <div>
                       <label
-                        class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Auth
-                        Method</label>
-                      <select x-model="selectedAuth" class="input-field">
-                        <template x-for="o in authChoices" :key="o.value">
-                          <option :value="o.value" x-text="o.label + (o.hint ? ' — ' + o.hint : '')"></option>
-                        </template>
-                      </select>
-                      <p x-show="authGuidance" x-text="authGuidance"
-                        class="text-xs text-[var(--color-text-secondary)] mt-1.5"></p>
+                        class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Custom
+                        model ID</label>
+                      <input x-model="customModelId" type="text" placeholder="e.g. my-model-id"
+                        class="input-field" />
                     </div>
-                    <div x-show="authRequiresSecret">
+                    <div>
                       <label
                         class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">API
-                        Key / Token</label>
-                      <input x-model="authSecret" type="password" placeholder="Paste your API key or token"
+                        compatibility</label>
+                      <select x-model="customCompatibility" class="input-field">
+                        <option value="openai">OpenAI-compatible</option>
+                        <option value="anthropic">Anthropic-compatible</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div x-show="isCloudflareGatewayChoice" class="space-y-3">
+                    <div>
+                      <label
+                        class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Cloudflare
+                        account ID</label>
+                      <input x-model="cloudflareAccountId" type="text" placeholder="Your Cloudflare account ID"
                         class="input-field" />
                     </div>
                     <div>
                       <label
-                        class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Model</label>
-                      <input x-model="model" type="text"
-                        placeholder="e.g. anthropic/claude-opus-4-7, minimax/MiniMax-M2.7, openai/gpt-5"
+                        class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">AI
+                        Gateway ID</label>
+                      <input x-model="cloudflareGatewayId" type="text" placeholder="The AI Gateway slug"
                         class="input-field" />
-                      <p class="text-xs text-[var(--color-text-muted)] mt-1.5">Format: provider/model-name</p>
                     </div>
                   </div>
-                </section>
-              </div>
+                  <div>
+                    <label
+                      class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Model</label>
+                    <input x-model="model" type="text" placeholder="e.g. anthropic/claude-opus-4-7, minimax/MiniMax-M2.7"
+                      class="input-field" />
+                    <p class="text-xs text-[var(--color-text-muted)] mt-1.5">Format: provider/model-name</p>
+                  </div>
+                </div>
+              </section>
 
-              <!-- Step 2: Channels -->
-              <div x-show="step === 2" x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
-                <section class="card">
-                  <div class="flex items-center gap-3 mb-2">
-                    <span class="section-number">2</span>
-                    <h2 class="text-lg font-semibold">Channels</h2>
-                    <span
-                      class="text-[10px] uppercase tracking-wide font-semibold text-[var(--color-text-muted)] bg-[var(--color-surface-overlay)] px-2 py-0.5 rounded">Optional</span>
+              <!-- SECTION 2: Channels -->
+              <section class="card">
+                <div class="flex items-center gap-3 mb-2">
+                  <span class="section-number">2</span>
+                  <h2 class="text-lg font-semibold">Channels</h2>
+                  <span
+                    class="text-[10px] uppercase tracking-wide font-semibold text-[var(--color-text-muted)] bg-[var(--color-surface-overlay)] px-2 py-0.5 rounded">Optional</span>
+                </div>
+                <p class="text-sm text-[var(--color-text-secondary)] mb-6 ml-11">Connect messaging platforms. You can
+                  also
+                  add these later from the OpenClaw UI.</p>
+                <div class="space-y-5">
+                  <div>
+                    <label
+                      class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Telegram
+                      Bot Token</label>
+                    <input x-model="telegramToken" type="password" placeholder="Bot token from @BotFather"
+                      class="input-field" />
+                    <p class="text-xs text-[var(--color-text-muted)] mt-1.5">Get from <a href="https://t.me/BotFather"
+                        target="_blank" class="text-[var(--color-accent)] hover:underline">@BotFather</a> → <code
+                        class="text-xs bg-[var(--color-surface-overlay)] px-1 py-0.5 rounded">/newbot</code></p>
                   </div>
-                  <p class="text-sm text-[var(--color-text-secondary)] mb-6 ml-11">Hook up your messaging platforms —
-                    or skip and add them later from the UI.</p>
-                  <div class="space-y-5">
-                    <div>
-                      <label
-                        class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Telegram
-                        Bot Token</label>
-                      <input x-model="telegramToken" type="password" placeholder="Bot token from @BotFather"
-                        class="input-field" />
-                      <p class="text-xs text-[var(--color-text-muted)] mt-1.5">Grab yours from <a
-                          href="https://t.me/BotFather" target="_blank"
-                          class="text-[var(--color-accent)] hover:underline">@BotFather</a> → <code
-                          class="text-xs bg-[var(--color-surface-overlay)] px-1 py-0.5 rounded">/newbot</code></p>
-                    </div>
-                    <div>
-                      <label
-                        class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Discord
-                        Bot Token</label>
-                      <input x-model="discordToken" type="password" placeholder="Bot token from Developer Portal"
-                        class="input-field" />
-                      <p class="text-xs text-[var(--color-text-muted)] mt-1.5">Enable <strong
-                          class="text-[var(--color-warning)]">MESSAGE CONTENT INTENT</strong> in Bot → Privileged
-                        Gateway Intents</p>
-                    </div>
-                    <div>
-                      <label
-                        class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Slack
-                        Bot Token</label>
-                      <input x-model="slackBotToken" type="password" placeholder="xoxb-..." class="input-field" />
-                    </div>
-                    <div>
-                      <label
-                        class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Slack
-                        App Token</label>
-                      <input x-model="slackAppToken" type="password" placeholder="xapp-..." class="input-field" />
-                    </div>
+                  <div>
+                    <label
+                      class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Discord
+                      Bot Token</label>
+                    <input x-model="discordToken" type="password" placeholder="Bot token from Developer Portal"
+                      class="input-field" />
+                    <p class="text-xs text-[var(--color-text-muted)] mt-1.5">Enable <strong
+                        class="text-[var(--color-warning)]">MESSAGE CONTENT INTENT</strong> in Bot → Privileged Gateway
+                      Intents</p>
                   </div>
-                </section>
-              </div>
+                  <div>
+                    <label
+                      class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Slack
+                      Bot Token</label>
+                    <input x-model="slackBotToken" type="password" placeholder="xoxb-..." class="input-field" />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Slack
+                      App Token</label>
+                    <input x-model="slackAppToken" type="password" placeholder="xapp-..." class="input-field" />
+                  </div>
+                </div>
+              </section>
 
-              <!-- Step 3: Review & Run -->
-              <div x-show="step === 3" x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
-                <section class="card">
-                  <div class="flex items-center gap-3 mb-6">
-                    <span class="section-number">3</span>
-                    <h2 class="text-lg font-semibold">Review & Launch</h2>
-                  </div>
-                  <div class="bg-[var(--color-surface)] border border-[var(--color-border-muted)] rounded-lg p-4 mb-6">
-                    <p class="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] font-semibold mb-3">
-                      Your Configuration</p>
-                    <dl class="space-y-2.5 text-sm">
-                      <div class="flex justify-between">
-                        <dt class="text-[var(--color-text-secondary)]">Provider</dt>
-                        <dd x-text="selectedGroup || '—'" class="text-[var(--color-text-primary)] font-medium"></dd>
-                      </div>
-                      <div class="flex justify-between">
-                        <dt class="text-[var(--color-text-secondary)]">Auth Method</dt>
-                        <dd x-text="selectedAuth || '—'" class="text-[var(--color-text-primary)] font-medium"></dd>
-                      </div>
-                      <div class="flex justify-between">
-                        <dt class="text-[var(--color-text-secondary)]">Model</dt>
-                        <dd x-text="model || 'Default'" class="text-[var(--color-text-primary)] font-medium"></dd>
-                      </div>
-                      <div class="flex justify-between items-center">
-                        <dt class="text-[var(--color-text-secondary)]">Channels</dt>
-                        <dd class="flex gap-1.5">
-                          <span x-show="telegramToken"
-                            class="text-xs bg-[#0088cc]/15 text-[#29b6f6] px-2 py-0.5 rounded">Telegram</span>
-                          <span x-show="discordToken"
-                            class="text-xs bg-[#5865F2]/15 text-[#7289da] px-2 py-0.5 rounded">Discord</span>
-                          <span x-show="slackBotToken && slackAppToken"
-                            class="text-xs bg-[#4A154B]/15 text-[#e01e5a] px-2 py-0.5 rounded">Slack</span>
-                          <span x-show="!telegramToken && !discordToken && !(slackBotToken && slackAppToken)"
-                            class="text-xs text-[var(--color-text-muted)]">None</span>
-                        </dd>
-                      </div>
-                    </dl>
-                  </div>
-
-                  <!-- Fun loading message -->
-                  <div x-show="loading && currentLoadingMessage" class="mb-6 rounded-xl p-4"
-                    style="background: linear-gradient(135deg, rgba(230,57,70,0.08), rgba(99,102,241,0.08)); border: 1px solid rgba(230,57,70,0.15);">
-                    <div class="flex items-center gap-3">
-                      <svg class="animate-spin w-5 h-5 text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24">
+              <!-- SECTION 3: Review & Run -->
+              <section class="card">
+                <div class="flex items-center gap-3 mb-6">
+                  <span class="section-number">3</span>
+                  <h2 class="text-lg font-semibold">Review & Run</h2>
+                </div>
+                <div class="bg-[var(--color-surface)] border border-[var(--color-border-muted)] rounded-lg p-4 mb-6">
+                  <p class="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] font-semibold mb-3">
+                    Your
+                    Configuration</p>
+                  <dl class="space-y-2.5 text-sm">
+                    <div class="flex justify-between">
+                      <dt class="text-[var(--color-text-secondary)]">Provider</dt>
+                      <dd x-text="selectedGroup || '—'" class="text-[var(--color-text-primary)] font-medium"></dd>
+                    </div>
+                    <div class="flex justify-between">
+                      <dt class="text-[var(--color-text-secondary)]">Auth Method</dt>
+                      <dd x-text="selectedAuth || '—'" class="text-[var(--color-text-primary)] font-medium"></dd>
+                    </div>
+                    <div class="flex justify-between">
+                      <dt class="text-[var(--color-text-secondary)]">Model</dt>
+                      <dd x-text="model || 'Default'" class="text-[var(--color-text-primary)] font-medium"></dd>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <dt class="text-[var(--color-text-secondary)]">Channels</dt>
+                      <dd class="flex gap-1.5">
+                        <span x-show="telegramToken"
+                          class="text-xs bg-[#0088cc]/15 text-[#29b6f6] px-2 py-0.5 rounded">Telegram</span>
+                        <span x-show="discordToken"
+                          class="text-xs bg-[#5865F2]/15 text-[#7289da] px-2 py-0.5 rounded">Discord</span>
+                        <span x-show="slackBotToken && slackAppToken"
+                          class="text-xs bg-[#4A154B]/15 text-[#e01e5a] px-2 py-0.5 rounded">Slack</span>
+                        <span x-show="!telegramToken && !discordToken && !(slackBotToken && slackAppToken)"
+                          class="text-xs text-[var(--color-text-muted)]">None</span>
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 mb-4">
+                  <button @click="runSetup()" :disabled="loading" class="btn btn-primary">
+                    <span x-show="!loading">▶ Run Setup</span>
+                    <span x-show="loading" class="flex items-center gap-2">
+                      <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
-                      <span x-text="currentLoadingMessage"
-                        class="text-sm font-medium text-[var(--color-text-primary)]"></span>
-                    </div>
-                  </div>
-
-                  <div class="flex flex-wrap items-center gap-3 mb-4">
-                    <button @click="runSetup()" :disabled="loading" class="btn btn-primary">
-                      <span x-show="!loading">▶ Run Setup</span>
-                      <span x-show="loading" class="flex items-center gap-2">
-                        <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                          <path class="opacity-75" fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
-                        Running...
-                      </span>
-                    </button>
-                    <button @click="resetSetup()" :disabled="loading" class="btn btn-danger">Reset</button>
-                  </div>
-
-                  <!-- ChatGPT/Codex OAuth login panel -->
-                  <div x-show="loginUrl || loginCode" x-cloak class="mb-4 rounded-xl p-4"
-                    style="background: linear-gradient(135deg, rgba(63,185,80,0.06), rgba(99,102,241,0.06)); border: 1px solid rgba(63,185,80,0.2);">
-                    <div class="flex flex-col gap-2">
-                      <p class="text-[10px] uppercase tracking-widest text-[var(--color-success)] font-semibold">ChatGPT
-                        Login</p>
-                      <a x-show="loginUrl" :href="loginUrl" target="_blank" rel="noopener noreferrer"
-                        class="text-sm text-[var(--color-text-primary)] underline break-all" x-text="loginUrl"></a>
-                      <div x-show="loginCode" class="flex items-center gap-2">
-                        <span class="text-xs text-[var(--color-text-secondary)]">Code:</span>
-                        <code
-                          class="text-base font-mono font-semibold tracking-widest text-[var(--color-text-primary)] bg-[var(--color-surface-overlay)] px-2 py-1 rounded"
-                          x-text="loginCode"></code>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div x-show="setupError" x-cloak x-text="setupError"
-                    class="mb-4 rounded-xl p-3 border border-[var(--color-danger)]/40 bg-[var(--color-danger)]/10 text-sm text-[var(--color-danger)]">
-                  </div>
-
-                  <div x-show="log" x-ref="setupLog" class="log-box" x-text="log"></div>
-                </section>
-              </div>
-
-              <!-- Step navigation -->
-              <div class="flex justify-between mt-6">
-                <button x-show="step > 1" @click="prevStep()" class="btn btn-secondary flex items-center gap-2">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                  </svg>
-                  Back
-                </button>
-                <div x-show="step === 1"></div>
-                <button x-show="step < totalSteps" @click="nextStep()"
-                  class="btn btn-primary flex items-center gap-2 ml-auto">
-                  Next
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
+                      Running...
+                    </span>
+                  </button>
+                  <button @click="resetSetup()" :disabled="loading" class="btn btn-danger">Reset</button>
+                </div>
+                <div x-show="loginUrl || loginCode"
+                  class="bg-[#6e40c9]/10 border border-[#6e40c9]/40 rounded-lg p-4 mb-4">
+                  <p class="text-[10px] uppercase tracking-widest text-[#a779e9] font-semibold mb-2">ChatGPT Login</p>
+                  <a x-show="loginUrl" :href="loginUrl" target="_blank" rel="noopener noreferrer"
+                    class="block text-sm text-[var(--color-accent)] hover:underline break-all mb-2"
+                    x-text="loginUrl"></a>
+                  <div x-show="loginCode"
+                    class="font-mono text-xl font-bold text-[var(--color-text-primary)] tracking-widest bg-[var(--color-surface)] rounded px-3 py-2 inline-block"
+                    x-text="loginCode"></div>
+                </div>
+                <div x-show="setupError"
+                  class="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/40 rounded-lg p-3 mb-4 text-sm text-[var(--color-danger)]"
+                  x-text="setupError"></div>
+                <div x-show="log" class="log-box" x-text="log"></div>
+              </section>
             </div>
           </template>
 
           <!-- ===================== POST-SETUP VIEW ===================== -->
           <template x-if="isReady && configured">
             <div class="space-y-6">
+
+              <!-- Two-column layout: left = maintenance + logs, right = actions -->
               <div class="flex flex-col lg:flex-row gap-6">
 
-                <!-- LEFT COLUMN: Completion + Maintenance + Logs -->
+                <!-- LEFT COLUMN: Maintenance + Logs -->
                 <div class="flex-1 space-y-6 min-w-0">
 
                   <!-- Setup Complete Banner -->
@@ -1067,17 +1026,49 @@
                         </svg>
                       </div>
                       <div>
-                        <h2 class="text-lg font-semibold" x-text="currentCompletionMessage || 'Setup Complete'"></h2>
-                        <p class="text-sm text-[var(--color-text-secondary)]">Your OpenClaw instance is live and ready
-                          to go</p>
+                        <h2 class="text-lg font-semibold">Setup Complete</h2>
+                        <p class="text-sm text-[var(--color-text-secondary)]">Your OpenClaw instance is configured and
+                          running</p>
                       </div>
+                    </div>
+                  </section>
+
+                  <!-- Gateway Token -->
+                  <section class="card">
+                    <div class="flex items-center gap-3 mb-3">
+                      <div class="w-8 h-8 rounded-full bg-[var(--color-accent)]/15 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 class="text-base font-semibold">Gateway Token</h3>
+                        <p class="text-xs text-[var(--color-text-secondary)]">Required to connect the OpenClaw UI</p>
+                      </div>
+                    </div>
+                    <button
+                      @click="navigator.clipboard.writeText(gatewayToken).then(() => { gatewayTokenCopied = true; setTimeout(() => gatewayTokenCopied = false, 3000); })"
+                      class="btn btn-primary w-full mb-3" id="copy-gateway-token-btn">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                      </svg>
+                      <span x-text="gatewayTokenCopied ? '✓ Copied!' : 'Copy Gateway Token'"></span>
+                    </button>
+                    <div class="bg-[var(--color-surface)] border border-[var(--color-border-muted)] rounded-lg p-3">
+                      <p class="text-xs text-[var(--color-text-secondary)] leading-relaxed">
+                        <strong class="text-[var(--color-warning)]">Next step:</strong>
+                        Open the OpenClaw UI below, then go to <strong class="text-[var(--color-text-primary)]">Overview</strong>
+                        and paste this token in the <strong class="text-[var(--color-text-primary)]">Gateway Token</strong> field.
+                        After that, go to <strong class="text-[var(--color-text-primary)]">Pair Devices</strong> and
+                        approve the pairing request.
+                      </p>
                     </div>
                   </section>
 
                   <!-- Maintenance -->
                   <section class="card">
                     <h3 class="text-base font-semibold mb-1">Maintenance</h3>
-                    <p class="text-sm text-[var(--color-text-secondary)] mb-4">Health checks and data tools</p>
+                    <p class="text-sm text-[var(--color-text-secondary)] mb-4">Health checks and data management</p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <button @click="runDoctor()" :disabled="loading" class="btn btn-secondary w-full">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1109,15 +1100,9 @@
 
                 <!-- RIGHT COLUMN: Actions + Danger Zone -->
                 <div class="lg:w-72 shrink-0 space-y-6">
+
+                  <!-- Primary Actions -->
                   <section class="card space-y-3">
-                    <button @click="copyGatewayToken()" class="btn btn-primary w-full">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                      </svg>
-                      <span x-show="!tokenCopied">Copy Gateway Token</span>
-                      <span x-show="tokenCopied" class="text-green-300">✓ Copied!</span>
-                    </button>
                     <a href="/openclaw" target="_blank" class="btn btn-success w-full">
                       Open OpenClaw UI
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1125,17 +1110,13 @@
                           d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                       </svg>
                     </a>
-                    <p class="text-[11px] text-[var(--color-text-muted)] leading-relaxed px-1">
-                      Paste the token in the UI → <strong class="text-[var(--color-text-secondary)]">Overview</strong> → <strong class="text-[var(--color-text-secondary)]">Gateway Token</strong> to connect.
-                    </p>
-                    <div class="border-t border-[var(--color-border)] my-1"></div>
-                    <button @click="openDevicesModal()" :disabled="loading" class="btn btn-secondary w-full">
+                    <a x-show="tuiEnabled" href="/tui" target="_blank" class="btn btn-tui w-full">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      Pair Devices
-                    </button>
+                      Open Terminal UI
+                    </a>
                     <button @click="openPairingModal()" :disabled="loading" class="btn btn-secondary w-full">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1143,15 +1124,66 @@
                       </svg>
                       Approve Channel Access
                     </button>
+                    <button @click="openDevicesModal()" :disabled="loading" class="btn btn-secondary w-full">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      Pair Devices
+                    </button>
+                    <a href="/logs" target="_blank" class="btn btn-secondary w-full">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 6h16M4 12h16M4 18h7" />
+                      </svg>
+                      View Logs
+                    </a>
+                    <button @click="openImportModal()" :disabled="loading" class="btn btn-secondary w-full">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 8v8a3 3 0 003 3h10a3 3 0 003-3V8m-4 4l-4-4m0 0L8 8m4 4V4" />
+                      </svg>
+                      Import Data
+                    </button>
                   </section>
 
                   <!-- Danger Zone -->
-                  <section class="card !border-[var(--color-danger)]/30">
-                    <h3 class="text-sm font-semibold text-[var(--color-danger)] mb-2">Danger Zone</h3>
-                    <p class="text-xs text-[var(--color-text-secondary)] mb-3">Wipes your config so you can start
-                      fresh from scratch.</p>
-                    <button @click="resetSetup()" :disabled="loading" class="btn btn-danger w-full text-sm">Reset
-                      Setup</button>
+                  <section class="card !border-[var(--color-warning)]/40 space-y-5">
+                    <h3 class="text-sm font-semibold text-[var(--color-danger)]">Danger Zone</h3>
+
+                    <!-- Reset Configuration (yellow / amber) -->
+                    <div class="border border-[var(--color-warning)]/30 rounded-lg p-3">
+                      <p class="text-xs uppercase tracking-widest text-[var(--color-warning)] font-semibold mb-1.5">
+                        Reset configuration</p>
+                      <p class="text-xs text-[var(--color-text-secondary)] leading-relaxed mb-3">
+                        Deletes <code
+                          class="text-[11px] bg-[var(--color-surface-overlay)] px-1 py-0.5 rounded">openclaw.json</code>
+                        so you can re-run the setup wizard with a different provider, model, or channels.
+                        <br /><br />
+                        <strong class="text-[var(--color-text-primary)]">Preserved:</strong> chat history, agent memory,
+                        OAuth credentials, paired devices, gateway token. Re-running setup will pick them up again.
+                      </p>
+                      <button @click="resetSetup()" :disabled="loading"
+                        class="btn btn-warning w-full text-sm">Reset configuration</button>
+                    </div>
+
+                    <!-- Wipe All Data (red, destructive) -->
+                    <div class="border border-[var(--color-danger)]/40 rounded-lg p-3 bg-[var(--color-danger)]/5">
+                      <p class="text-xs uppercase tracking-widest text-[var(--color-danger)] font-semibold mb-1.5">
+                        Wipe all data</p>
+                      <p class="text-xs text-[var(--color-text-secondary)] leading-relaxed mb-3">
+                        Permanently deletes everything under your data volume — config, <strong
+                          class="text-[var(--color-text-primary)]">all chat history</strong>, agent memory, OAuth
+                        credentials, paired devices, workspace files. The container restarts blank.
+                        <br /><br />
+                        <strong class="text-[var(--color-danger)]">This cannot be undone.</strong> If you might want
+                        your chats later, click <strong
+                          class="text-[var(--color-text-primary)]">Export Data</strong> first — once wiped, recovery is
+                        not possible.
+                      </p>
+                      <button @click="openWipeModal()" :disabled="loading"
+                        class="btn btn-danger-solid w-full text-sm">Wipe all data…</button>
+                    </div>
                   </section>
                 </div>
               </div>
@@ -1161,34 +1193,12 @@
       </main>
     </div>
 
-    <!-- TUI Info -->
-    <div class="max-w-[1400px] mx-auto px-6 pb-8" x-show="isReady" x-cloak>
-      <div class="card !p-4 flex items-start gap-3">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-          style="background: rgba(139, 92, 246, 0.08);">
-          <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <div>
-          <p class="text-xs text-[var(--color-text-secondary)] leading-relaxed"><strong
-              class="text-[var(--color-text-primary)]">Terminal UI (TUI)</strong> — You can also access a
-            browser-based terminal by setting <code class="text-purple-400/80 text-[11px]">ENABLE_WEB_TUI=true</code> in
-            Railway env vars, then navigating
-            to <code class="text-purple-400/80 text-[11px]">/tui</code>.</p>
-        </div>
-      </div>
-    </div>
-
     <!-- ===================== MODALS ===================== -->
 
     <!-- Devices Modal -->
-    <div x-show="showDevicesModal" x-cloak
-      class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm"
+    <div x-show="showDevicesModal" x-cloak class="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
       @click.self="showDevicesModal = false">
-      <div
-        class="card bg-[var(--color-surface-raised)]/95 backdrop-blur-xl w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto !border-[var(--color-border)] shadow-2xl">
+      <div class="card w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto !border-[var(--color-border)]">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold">Pair Devices</h3>
           <div class="flex items-center gap-2">
@@ -1273,11 +1283,9 @@
     </div>
 
     <!-- Export Info Modal -->
-    <div x-show="showExportInfo" x-cloak
-      class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm"
+    <div x-show="showExportInfo" x-cloak class="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
       @click.self="showExportInfo = false">
-      <div
-        class="card bg-[var(--color-surface-raised)]/95 backdrop-blur-xl w-full max-w-md mx-4 !border-[var(--color-border)] shadow-2xl">
+      <div class="card w-full max-w-md mx-4 !border-[var(--color-border)]">
         <h3 class="text-lg font-semibold mb-4">Unzip Instructions</h3>
         <p class="text-sm text-[var(--color-text-secondary)] mb-4">The exported ZIP is password-protected with your
           <strong>SETUP_PASSWORD</strong>.
@@ -1307,11 +1315,9 @@
     </div>
 
     <!-- Pairing Modal -->
-    <div x-show="showPairingModal" x-cloak
-      class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm"
+    <div x-show="showPairingModal" x-cloak class="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
       @click.self="showPairingModal = false">
-      <div
-        class="card bg-[var(--color-surface-raised)]/95 backdrop-blur-xl w-full max-w-sm mx-4 !border-[var(--color-border)] shadow-2xl">
+      <div class="card w-full max-w-sm mx-4 !border-[var(--color-border)]">
         <h3 class="text-lg font-semibold mb-4">Approve Channel Access</h3>
         <div class="space-y-4">
           <div>
@@ -1332,6 +1338,226 @@
             <button @click="approvePairing()" class="btn btn-primary flex-1">Approve</button>
             <button @click="showPairingModal = false" class="btn btn-secondary flex-1">Cancel</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wipe All Data Modal -->
+    <div x-show="showWipeModal" x-cloak class="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+      @click.self="if (!wiping) showWipeModal = false">
+      <div class="card w-full max-w-md mx-4 !border-[var(--color-danger)]/50">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-full bg-[var(--color-danger)]/15 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5 text-[var(--color-danger)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-[var(--color-danger)]">Wipe all data</h3>
+        </div>
+
+        <div class="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 rounded-lg p-3 mb-4">
+          <p class="text-xs text-[var(--color-text-secondary)] leading-relaxed">
+            <strong class="text-[var(--color-text-primary)]">This permanently deletes everything</strong> under
+            <code class="text-[11px] bg-[var(--color-surface-overlay)] px-1 py-0.5 rounded">/data</code>: config, all
+            chat history, agent memory, OAuth credentials, paired devices, and workspace files. Recovery is
+            <strong class="text-[var(--color-danger)]">not possible</strong>.
+          </p>
+        </div>
+
+        <div class="bg-[var(--color-warning)]/10 border border-[var(--color-warning)]/30 rounded-lg p-3 mb-4">
+          <p class="text-xs text-[var(--color-text-secondary)] leading-relaxed">
+            <strong class="text-[var(--color-warning)]">Want to keep your chats?</strong> Cancel this dialog, click
+            <strong class="text-[var(--color-text-primary)]">Export Data</strong> first to save a password-protected
+            backup, then come back.
+          </p>
+        </div>
+
+        <label class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">
+          Re-enter your <code class="text-[10px] bg-[var(--color-surface-overlay)] px-1 py-0.5 rounded normal-case">SETUP_PASSWORD</code>
+          to confirm
+        </label>
+        <input x-model="wipePassword" type="password" placeholder="SETUP_PASSWORD"
+          class="input-field"
+          @keydown.enter="wipeData()" />
+        <div x-show="wipeError"
+          class="mt-2 text-xs text-[var(--color-danger)]"
+          x-text="wipeError"></div>
+
+        <div class="flex gap-3 pt-5">
+          <button @click="wipeData()" :disabled="wiping || !wipePassword"
+            class="btn btn-danger-solid flex-1">
+            <span x-show="!wiping">I understand — wipe everything</span>
+            <span x-show="wiping" class="flex items-center gap-2">
+              <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Wiping…
+            </span>
+          </button>
+          <button @click="showWipeModal = false" :disabled="wiping"
+            class="btn btn-secondary flex-1">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import Data Modal -->
+    <div x-show="showImportModal" x-cloak class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 overflow-y-auto"
+      @click.self="closeImportModal()">
+      <div class="card w-full max-w-lg my-8 !border-[var(--color-border)]">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-full bg-[var(--color-accent)]/15 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5 text-[var(--color-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 8v8a3 3 0 003 3h10a3 3 0 003-3V8m-4 4l-4-4m0 0L8 8m4 4V4" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold">Import data from another deployment</h3>
+        </div>
+
+        <!-- Format requirement notice (shown in idle/probing/awaiting-zip-password phases) -->
+        <div x-show="importPhase === 'idle' || importPhase === 'probing' || importPhase === 'awaiting-zip-password'"
+          class="bg-[var(--color-surface)] border border-[var(--color-border-muted)] rounded-lg p-3 mb-4 text-xs text-[var(--color-text-secondary)] leading-relaxed">
+          <strong class="text-[var(--color-text-primary)]">Compatible archive only.</strong> This works with ZIPs
+          produced by the <strong class="text-[var(--color-text-primary)]">Export Data</strong> button on this template
+          (or another deployment of it). The archive must contain
+          <code class="text-[11px] bg-[var(--color-surface-overlay)] px-1 py-0.5 rounded">data/.openclaw/openclaw.json</code>
+          and (optionally) <code class="text-[11px] bg-[var(--color-surface-overlay)] px-1 py-0.5 rounded">data/workspace</code>.
+          Custom backups in other layouts will not import.
+        </div>
+
+        <!-- File picker -->
+        <div x-show="importPhase === 'idle' || importPhase === 'probing'" class="mb-4">
+          <label class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">
+            Export ZIP file
+          </label>
+          <input type="file" accept=".zip,application/zip" @change="onImportFileSelected($event)"
+            class="block w-full text-sm text-[var(--color-text-secondary)]
+              file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0
+              file:text-xs file:font-medium file:cursor-pointer
+              file:bg-[var(--color-surface-overlay)] file:text-[var(--color-text-primary)]
+              hover:file:bg-[var(--color-border-muted)]" />
+          <p x-show="importFile" class="text-xs text-[var(--color-text-muted)] mt-1.5">
+            Selected: <span x-text="importFile?.name + ' (' + ((importFile?.size || 0) / 1048576).toFixed(2) + ' MB)'"></span>
+          </p>
+        </div>
+
+        <!-- ZIP password prompt (only when needed) -->
+        <div x-show="importPhase === 'awaiting-zip-password'" class="mb-4">
+          <div class="bg-[var(--color-warning)]/10 border border-[var(--color-warning)]/30 rounded-lg p-3 mb-3">
+            <p class="text-xs text-[var(--color-text-secondary)] leading-relaxed">
+              <strong class="text-[var(--color-warning)]">Password-protected archive.</strong>
+              Enter the <strong class="text-[var(--color-text-primary)]">SETUP_PASSWORD of the source deployment</strong>
+              (the one that exported this ZIP). It is not necessarily the same as this deployment's password.
+            </p>
+          </div>
+          <label class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">
+            Source deployment's SETUP_PASSWORD
+          </label>
+          <input x-model="importZipPassword" type="password" placeholder="Source export password"
+            class="input-field" @keydown.enter="probeImport()" />
+        </div>
+
+        <!-- Confirm phase: show manifest + DESTRUCTIVE warning + SETUP_PASSWORD field -->
+        <div x-show="importPhase === 'awaiting-confirm' || importPhase === 'applying'" class="mb-4 space-y-3">
+          <div class="bg-[var(--color-surface)] border border-[var(--color-border-muted)] rounded-lg p-3">
+            <p class="text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] font-semibold mb-2">
+              About to import</p>
+            <dl class="space-y-1.5 text-sm">
+              <div class="flex justify-between">
+                <dt class="text-[var(--color-text-secondary)]">openclaw.json</dt>
+                <dd class="text-[var(--color-text-primary)] font-medium">
+                  <span x-show="importManifest?.hasOpenclawJson">✓ included</span>
+                  <span x-show="!importManifest?.hasOpenclawJson" class="text-[var(--color-danger)]">missing</span>
+                </dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-[var(--color-text-secondary)]">Chat sessions</dt>
+                <dd class="text-[var(--color-text-primary)] font-medium" x-text="(importManifest?.sessionCount ?? 0) + ' file' + ((importManifest?.sessionCount ?? 0) === 1 ? '' : 's')"></dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-[var(--color-text-secondary)]">Workspace</dt>
+                <dd class="text-[var(--color-text-primary)] font-medium">
+                  <span x-show="importManifest?.hasWorkspace">✓ included</span>
+                  <span x-show="!importManifest?.hasWorkspace" class="text-[var(--color-text-muted)]">none</span>
+                </dd>
+              </div>
+              <div x-show="importManifest?.sourceVersion" class="flex justify-between">
+                <dt class="text-[var(--color-text-secondary)]">Source version</dt>
+                <dd class="text-[var(--color-text-primary)] font-medium" x-text="importManifest?.sourceVersion"></dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/40 rounded-lg p-3">
+            <p class="text-xs text-[var(--color-text-secondary)] leading-relaxed">
+              <strong class="text-[var(--color-danger)]">This permanently REPLACES all existing data</strong> on this
+              deployment — including <strong class="text-[var(--color-text-primary)]">all current chat history</strong>,
+              configuration, agent memory, OAuth credentials, and workspace files. Recovery is not possible.
+            </p>
+          </div>
+
+          <div class="bg-[var(--color-warning)]/10 border border-[var(--color-warning)]/30 rounded-lg p-3">
+            <p class="text-xs text-[var(--color-text-secondary)] leading-relaxed">
+              <strong class="text-[var(--color-warning)]">Want to keep your current chats?</strong> Cancel this dialog,
+              click <strong class="text-[var(--color-text-primary)]">Export Data</strong> to back up first, then come
+              back to import.
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">
+              Re-enter <strong class="text-[var(--color-text-primary)] normal-case">this deployment's SETUP_PASSWORD</strong> to confirm
+            </label>
+            <input x-model="importSetupPassword" type="password" placeholder="THIS deployment's SETUP_PASSWORD"
+              class="input-field" :disabled="importPhase === 'applying'"
+              @keydown.enter="applyImport()" />
+          </div>
+        </div>
+
+        <div x-show="importError"
+          class="mb-4 text-xs text-[var(--color-danger)] bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 rounded-lg p-3"
+          x-text="importError"></div>
+        <div x-show="importInfo && !importError"
+          class="mb-4 text-xs text-[var(--color-text-secondary)] bg-[var(--color-surface)] border border-[var(--color-border-muted)] rounded-lg p-3"
+          x-text="importInfo"></div>
+
+        <!-- Action buttons (vary by phase) -->
+        <div class="flex gap-3 pt-2">
+          <!-- Idle: show Upload & Probe -->
+          <button x-show="importPhase === 'idle'" @click="probeImport()" :disabled="!importFile"
+            class="btn btn-primary flex-1">Upload &amp; check</button>
+
+          <!-- Probing: show spinner -->
+          <button x-show="importPhase === 'probing'" disabled class="btn btn-primary flex-1">
+            <svg class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            Uploading…
+          </button>
+
+          <!-- Awaiting zip password: show Try password -->
+          <button x-show="importPhase === 'awaiting-zip-password'" @click="probeImport()"
+            :disabled="!importZipPassword"
+            class="btn btn-primary flex-1">Try password</button>
+
+          <!-- Awaiting confirm or applying -->
+          <button x-show="importPhase === 'awaiting-confirm'" @click="applyImport()"
+            :disabled="!importSetupPassword"
+            class="btn btn-danger-solid flex-1">I understand — replace all data</button>
+
+          <button x-show="importPhase === 'applying'" disabled class="btn btn-danger-solid flex-1">
+            <svg class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            Applying…
+          </button>
+
+          <button @click="closeImportModal()" :disabled="importPhase === 'applying'"
+            class="btn btn-secondary flex-1">Cancel</button>
         </div>
       </div>
     </div>
