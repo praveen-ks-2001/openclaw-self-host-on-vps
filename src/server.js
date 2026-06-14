@@ -182,13 +182,15 @@ function cleanPtyOutput(value) {
 // non-interactive onboard probes). Each option declares how its credential is
 // supplied:
 //   kind: "key"     -> paste an API key/token; `flag` carries it to onboard.
-//   kind: "device"  -> device-code pairing driven in-wizard via PTY (OpenClaw
-//                      prints a URL + short code we scrape and show).
-//   kind: "console" -> OAuth / browser sign-in that cannot complete headless;
-//                      the wizard surfaces the exact `openclaw onboard` command
-//                      to run in the Railway console.
+//   kind: "device"  -> device-code OAuth driven in-wizard via PTY (OpenClaw
+//                      prints a verification URL + short code we stream + scrape).
 //   kind: "none"    -> no secret needed; onboarded non-interactively.
 // `note` is optional extra guidance shown under the field/panel.
+//
+// NOTE: redirect/PKCE OAuth flows (codex browser login, openrouter-oauth,
+// qwen-oauth, gemini-cli, minimax-oauth, chutes, etc.) are intentionally NOT
+// offered — they need a localhost callback the user's browser can't reach on a
+// remote Railway container, so only device-code OAuth is exposed.
 // ---------------------------------------------------------------------------
 const AUTH_CATALOG = [
   {
@@ -197,8 +199,7 @@ const AUTH_CATALOG = [
     hint: "API key / ChatGPT",
     options: [
       { value: "openai-api-key", label: "OpenAI API key", kind: "key", flag: "--openai-api-key" },
-      { value: "openai-device-code", label: "ChatGPT device pairing", hint: "Sign in with ChatGPT/Codex — no API key", kind: "device" },
-      { value: "codex", label: "ChatGPT/Codex browser sign-in", hint: "Runs in the Railway console", kind: "console" },
+      { value: "openai-device-code", label: "ChatGPT sign-in (device code)", hint: "Use a ChatGPT/Codex subscription — no API key", kind: "device" },
     ],
   },
   {
@@ -213,7 +214,6 @@ const AUTH_CATALOG = [
     hint: "API key / OAuth",
     options: [
       { value: "gemini-api-key", label: "Google Gemini API key", kind: "key", flag: "--gemini-api-key" },
-      { value: "google-gemini-cli", label: "Gemini CLI (OAuth)", hint: "Runs in the Railway console", kind: "console" },
     ],
   },
   {
@@ -222,8 +222,7 @@ const AUTH_CATALOG = [
     hint: "API key / OAuth",
     options: [
       { value: "xai-api-key", label: "xAI API key", kind: "key", flag: "--xai-api-key" },
-      { value: "xai-oauth", label: "SuperGrok / X Premium sign-in", hint: "Runs in the Railway console", kind: "console" },
-      { value: "xai-device-code", label: "xAI device code", hint: "Runs in the Railway console", kind: "console" },
+      { value: "xai-device-code", label: "Grok sign-in (device code)", hint: "Use a SuperGrok / X Premium subscription — no API key", kind: "device" },
     ],
   },
   {
@@ -238,7 +237,6 @@ const AUTH_CATALOG = [
     hint: "API key / OAuth",
     options: [
       { value: "openrouter-api-key", label: "OpenRouter API key", kind: "key", flag: "--openrouter-api-key" },
-      { value: "openrouter-oauth", label: "OpenRouter OAuth", hint: "Runs in the Railway console", kind: "console" },
     ],
   },
   {
@@ -333,8 +331,6 @@ const AUTH_CATALOG = [
     options: [
       { value: "minimax-global-api", label: "MiniMax API key (Global)", kind: "key", flag: "--minimax-api-key" },
       { value: "minimax-cn-api", label: "MiniMax API key (CN)", kind: "key", flag: "--minimax-api-key" },
-      { value: "minimax-global-oauth", label: "MiniMax OAuth (Global)", hint: "Runs in the Railway console", kind: "console" },
-      { value: "minimax-cn-oauth", label: "MiniMax OAuth (CN)", hint: "Runs in the Railway console", kind: "console" },
     ],
   },
   {
@@ -346,7 +342,6 @@ const AUTH_CATALOG = [
       { value: "qwen-api-key-cn", label: "Qwen Coding Plan (CN)", kind: "key", flag: "--modelstudio-api-key-cn" },
       { value: "qwen-standard-api-key", label: "Qwen Standard (Global)", kind: "key", flag: "--modelstudio-standard-api-key" },
       { value: "qwen-standard-api-key-cn", label: "Qwen Standard (CN)", kind: "key", flag: "--modelstudio-standard-api-key-cn" },
-      { value: "qwen-oauth", label: "Qwen OAuth", hint: "Runs in the Railway console", kind: "console" },
     ],
   },
   {
@@ -396,7 +391,6 @@ const AUTH_CATALOG = [
     hint: "Free tier OAuth or API key",
     options: [
       { value: "chutes-api-key", label: "Chutes API key", kind: "key", flag: "--chutes-api-key" },
-      { value: "chutes", label: "Chutes (free tier OAuth)", hint: "Runs in the Railway console", kind: "console" },
     ],
   },
   {
@@ -408,9 +402,8 @@ const AUTH_CATALOG = [
   {
     value: "copilot",
     label: "Copilot",
-    hint: "GitHub device login + local proxy",
+    hint: "Local Copilot proxy",
     options: [
-      { value: "github-copilot", label: "GitHub Copilot (device login)", hint: "Runs in the Railway console", kind: "console" },
       { value: "copilot-proxy", label: "Copilot Proxy (local)", kind: "none" },
     ],
   },
@@ -482,29 +475,14 @@ const AUTH_CHOICE_FLAGS = Object.fromEntries(
   ALL_AUTH_OPTIONS.filter((o) => o.kind === "key" && o.flag).map((o) => [o.value, o.flag]),
 );
 const VALID_AUTH_CHOICES = new Set(ALL_AUTH_OPTIONS.map((o) => o.value));
-const CONSOLE_AUTH_CHOICES = new Set(
-  ALL_AUTH_OPTIONS.filter((o) => o.kind === "console").map((o) => o.value),
-);
+// Device-code OAuth flows (kind: "device") print a verification URL + short code
+// and poll — the only OAuth style that completes on a headless Railway container
+// (no localhost browser callback). We run these under a PTY and stream the URL +
+// code to the wizard. Redirect/PKCE OAuth flows are intentionally NOT offered:
+// they need a localhost callback the user's browser can't reach on Railway.
 const DEVICE_CODE_AUTH_CHOICES = new Set(
   ALL_AUTH_OPTIONS.filter((o) => o.kind === "device").map((o) => o.value),
 );
-
-// Exact command an operator runs in the Railway console for OAuth/browser
-// sign-ins the headless wizard can't complete. Pre-seeds the wrapper's gateway
-// settings + token so the resulting config matches what this deployment expects;
-// the wizard appends `--auth-choice <value>`.
-function consoleOnboardPrefix() {
-  return [
-    "openclaw onboard --accept-risk --no-install-daemon --skip-health",
-    "--skip-channels --skip-skills --skip-search --skip-ui",
-    `--workspace ${WORKSPACE_DIR}`,
-    "--gateway-bind loopback",
-    `--gateway-port ${INTERNAL_GATEWAY_PORT}`,
-    "--gateway-auth token",
-    `--gateway-token ${OPENCLAW_GATEWAY_TOKEN}`,
-    "--flow quickstart",
-  ].join(" ");
-}
 
 function requiresInteractiveOnboarding(payload) {
   return DEVICE_CODE_AUTH_CHOICES.has(payload.authChoice);
@@ -1154,7 +1132,6 @@ app.get("/setup/api/status", requireSetupAuth, async (_req, res) => {
     openclawVersion: version,
     channelsAddHelp: channelsHelp,
     authGroups: AUTH_GROUPS_PUBLIC,
-    consoleOnboardPrefix: consoleOnboardPrefix(),
     tuiEnabled: ENABLE_WEB_TUI,
     gatewayToken: OPENCLAW_GATEWAY_TOKEN,
     // Version compatibility floor: entrypoint.sh bumps an older requested
@@ -1176,6 +1153,11 @@ function buildOnboardArgs(payload) {
     "--accept-risk",
     "--no-install-daemon",
     "--skip-health",
+    // Skip the "Enable hooks?" prompt outright (more robust than auto-answering
+    // it in the PTY flow), and keep the gateway token out of onboard's stdout so
+    // it isn't echoed into the device-code output we stream to the browser. (2026.6.x)
+    "--skip-hooks",
+    "--suppress-gateway-token-output",
     "--workspace",
     WORKSPACE_DIR,
     "--gateway-bind",
@@ -1325,9 +1307,6 @@ function runPtyCmd(cmd, args, opts = {}) {
 function validatePayload(payload) {
   if (payload.authChoice && !VALID_AUTH_CHOICES.has(payload.authChoice)) {
     return `Invalid authChoice: ${payload.authChoice}`;
-  }
-  if (CONSOLE_AUTH_CHOICES.has(payload.authChoice)) {
-    return `"${payload.authChoice}" uses a browser/OAuth sign-in that the web wizard can't complete headlessly. Run the command shown under this provider in the Railway console, then return here and open the OpenClaw UI.`;
   }
   const stringFields = [
     "telegramToken",

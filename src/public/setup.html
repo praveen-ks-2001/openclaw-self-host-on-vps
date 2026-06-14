@@ -94,8 +94,6 @@
         devicesPaired: [],
         gatewayTokenCopied: false,
         gatewayToken: '',
-        consoleOnboardPrefix: '',
-        consoleCmdCopied: false,
         loginUrl: '',
         loginCode: '',
         setupStreamTail: '',
@@ -129,15 +127,10 @@
           return this.selectedOption?.kind === 'key';
         },
 
-        // OAuth / browser sign-in that can't complete headlessly — show a copyable
-        // console command instead of Run Setup.
-        get isConsoleChoice() {
-          return this.selectedOption?.kind === 'console';
-        },
-
-        get consoleCommand() {
-          if (!this.consoleOnboardPrefix || !this.selectedAuth) return '';
-          return this.consoleOnboardPrefix + ' --auth-choice ' + this.selectedAuth;
+        // Device-code OAuth (e.g. ChatGPT / Grok sign-in) — runs in-wizard via
+        // PTY; the verification URL + code stream into the log box below.
+        get isDeviceChoice() {
+          return this.selectedOption?.kind === 'device';
         },
 
         get isCustomEndpointChoice() {
@@ -152,8 +145,7 @@
           const o = this.selectedOption;
           if (!o) return '';
           if (o.note) return o.note;
-          if (o.kind === 'device') return 'No API key needed. After clicking Run Setup, a ChatGPT sign-in URL and code appear below — open the URL and enter the code, then keep this page open until it completes.';
-          if (o.kind === 'console') return 'This provider uses a browser/OAuth sign-in that the web wizard can\'t run. Copy the command below, run it once in your Railway service Console, follow the printed URL, then return here and open the OpenClaw UI.';
+          if (o.kind === 'device') return 'No API key needed. Click Run Setup — a sign-in URL and short code appear in the log below. Open the URL, enter the code, and keep this page open until it completes.';
           if (o.kind === 'none') return 'No API key needed for this provider.';
           return '';
         },
@@ -185,7 +177,6 @@
             this.versionInfo = j.versionInfo || null;
             this.tuiEnabled = j.tuiEnabled || false;
             this.gatewayToken = j.gatewayToken || '';
-            this.consoleOnboardPrefix = j.consoleOnboardPrefix || '';
             this.status = j.configured ? 'Configured - open /openclaw' : 'Not configured - run setup below';
             this.authGroups = j.authGroups || [];
             if (this.authGroups.length > 0) {
@@ -864,28 +855,6 @@
                   <div x-show="authHelp"
                     class="bg-[var(--color-surface)] border border-[var(--color-border-muted)] rounded-lg p-3 text-xs text-[var(--color-text-secondary)] leading-relaxed"
                     x-text="authHelp"></div>
-                  <!-- Console-command panel: OAuth/browser sign-ins that can't run headlessly -->
-                  <div x-show="isConsoleChoice && consoleCommand"
-                    class="bg-[#6e40c9]/10 border border-[#6e40c9]/40 rounded-lg p-4 space-y-3">
-                    <p class="text-[10px] uppercase tracking-widest text-[#a779e9] font-semibold">Run once in the Railway
-                      console</p>
-                    <ol class="text-xs text-[var(--color-text-secondary)] leading-relaxed list-decimal ml-4 space-y-1">
-                      <li>Open your service in Railway → <strong class="text-[var(--color-text-primary)]">Console</strong>
-                        tab.</li>
-                      <li>Paste &amp; run the command below, then open the printed URL and sign in.</li>
-                      <li>When it finishes, return here and click <strong
-                          class="text-[var(--color-text-primary)]">Open OpenClaw UI</strong> (no need to click Run
-                        Setup).</li>
-                    </ol>
-                    <pre
-                      class="bg-[var(--color-surface)] border border-[var(--color-border-muted)] rounded-lg p-3 text-[11px] text-[var(--color-text-secondary)] font-mono whitespace-pre-wrap break-all"
-                      x-text="consoleCommand"></pre>
-                    <button type="button"
-                      @click="navigator.clipboard.writeText(consoleCommand).then(() => { consoleCmdCopied = true; setTimeout(() => consoleCmdCopied = false, 3000); })"
-                      class="btn btn-secondary text-xs">
-                      <span x-text="consoleCmdCopied ? '✓ Copied!' : 'Copy command'"></span>
-                    </button>
-                  </div>
                   <div x-show="isCustomEndpointChoice" class="space-y-3">
                     <div>
                       <label
@@ -1022,14 +991,14 @@
                     </div>
                   </dl>
                 </div>
-                <div x-show="isConsoleChoice"
-                  class="bg-[var(--color-warning)]/10 border border-[var(--color-warning)]/30 rounded-lg p-3 mb-4 text-xs text-[var(--color-text-secondary)] leading-relaxed">
-                  This provider signs in through the Railway console (see the command above). <strong
-                    class="text-[var(--color-text-primary)]">Run Setup is disabled</strong> for it — after the console
-                  command finishes, just open the OpenClaw UI.
+                <div x-show="isDeviceChoice"
+                  class="bg-[#6e40c9]/10 border border-[#6e40c9]/30 rounded-lg p-3 mb-4 text-xs text-[var(--color-text-secondary)] leading-relaxed">
+                  This is a device-code sign-in. Click <strong class="text-[var(--color-text-primary)]">Run Setup</strong>
+                  — a sign-in URL and code will stream into the log below. Open the URL, enter the code, and keep this
+                  page open until it finishes.
                 </div>
                 <div class="flex flex-wrap items-center gap-3 mb-4">
-                  <button @click="runSetup()" :disabled="loading || isConsoleChoice" class="btn btn-primary">
+                  <button @click="runSetup()" :disabled="loading" class="btn btn-primary">
                     <span x-show="!loading">▶ Run Setup</span>
                     <span x-show="loading" class="flex items-center gap-2">
                       <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
@@ -1043,7 +1012,7 @@
                 </div>
                 <div x-show="loginUrl || loginCode"
                   class="bg-[#6e40c9]/10 border border-[#6e40c9]/40 rounded-lg p-4 mb-4">
-                  <p class="text-[10px] uppercase tracking-widest text-[#a779e9] font-semibold mb-2">ChatGPT Login</p>
+                  <p class="text-[10px] uppercase tracking-widest text-[#a779e9] font-semibold mb-2">Device sign-in</p>
                   <a x-show="loginUrl" :href="loginUrl" target="_blank" rel="noopener noreferrer"
                     class="block text-sm text-[var(--color-accent)] hover:underline break-all mb-2"
                     x-text="loginUrl"></a>
