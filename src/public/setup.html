@@ -67,6 +67,7 @@
         status: 'Loading...',
         configured: false,
         openclawVersion: '',
+        versionInfo: null,
         authGroups: [],
         selectedGroup: '',
         authChoices: [],
@@ -93,6 +94,8 @@
         devicesPaired: [],
         gatewayTokenCopied: false,
         gatewayToken: '',
+        consoleOnboardPrefix: '',
+        consoleCmdCopied: false,
         loginUrl: '',
         loginCode: '',
         setupStreamTail: '',
@@ -116,20 +119,25 @@
         cloudflareAccountId: '',
         cloudflareGatewayId: '',
 
+        // The currently-selected provider option object (carries kind/note/hint
+        // metadata sent by the server's AUTH_CATALOG).
+        get selectedOption() {
+          return (this.authChoices || []).find(o => o.value === this.selectedAuth) || null;
+        },
+
         get authRequiresSecret() {
-          const noSecretChoices = new Set([
-            'openai-codex-device-code',
-            'google-gemini-cli',
-            'github-copilot',
-            'copilot-proxy',
-            'minimax-global-oauth',
-            'minimax-cn-oauth',
-            'chutes',
-            'ollama',
-            'vllm',
-            'sglang',
-          ]);
-          return !noSecretChoices.has(this.selectedAuth);
+          return this.selectedOption?.kind === 'key';
+        },
+
+        // OAuth / browser sign-in that can't complete headlessly — show a copyable
+        // console command instead of Run Setup.
+        get isConsoleChoice() {
+          return this.selectedOption?.kind === 'console';
+        },
+
+        get consoleCommand() {
+          if (!this.consoleOnboardPrefix || !this.selectedAuth) return '';
+          return this.consoleOnboardPrefix + ' --auth-choice ' + this.selectedAuth;
         },
 
         get isCustomEndpointChoice() {
@@ -141,27 +149,13 @@
         },
 
         get authHelp() {
-          switch (this.selectedAuth) {
-            case 'openai-codex-device-code':
-              return 'No API key needed. After clicking Run Setup, a ChatGPT login URL and code will appear below.';
-            case 'google-gemini-cli':
-              return 'OAuth via Google. The CLI will print a sign-in URL during onboarding.';
-            case 'github-copilot':
-              return 'GitHub device login. Open the URL printed during onboarding and approve the device code.';
-            case 'copilot-proxy':
-              return 'Uses a local Copilot proxy. No remote API key needed.';
-            case 'minimax-global-oauth':
-            case 'minimax-cn-oauth':
-              return 'OAuth via MiniMax. Sign-in URL will appear during onboarding.';
-            case 'chutes':
-              return 'Free-tier OAuth flow. Sign in via the URL printed during onboarding.';
-            case 'ollama':
-            case 'vllm':
-            case 'sglang':
-              return 'Self-hosted runtime. Make sure the server is reachable from this container.';
-            default:
-              return '';
-          }
+          const o = this.selectedOption;
+          if (!o) return '';
+          if (o.note) return o.note;
+          if (o.kind === 'device') return 'No API key needed. After clicking Run Setup, a ChatGPT sign-in URL and code appear below — open the URL and enter the code, then keep this page open until it completes.';
+          if (o.kind === 'console') return 'This provider uses a browser/OAuth sign-in that the web wizard can\'t run. Copy the command below, run it once in your Railway service Console, follow the printed URL, then return here and open the OpenClaw UI.';
+          if (o.kind === 'none') return 'No API key needed for this provider.';
+          return '';
         },
 
         get currentGroup() {
@@ -188,8 +182,10 @@
             const j = await this.httpJson('/setup/api/status');
             this.configured = j.configured;
             this.openclawVersion = j.openclawVersion || '';
+            this.versionInfo = j.versionInfo || null;
             this.tuiEnabled = j.tuiEnabled || false;
             this.gatewayToken = j.gatewayToken || '';
+            this.consoleOnboardPrefix = j.consoleOnboardPrefix || '';
             this.status = j.configured ? 'Configured - open /openclaw' : 'Not configured - run setup below';
             this.authGroups = j.authGroups || [];
             if (this.authGroups.length > 0) {
@@ -286,10 +282,13 @@
         },
 
         extractLoginDetails(text) {
-          const urlMatch = text.match(/https:\/\/auth\.openai\.com\/codex\/device[^\s)]*/);
+          // Provider-agnostic: OpenClaw builds the device verification URL from
+          // the auth server's response, so don't hardcode a path. Match any
+          // OpenAI/ChatGPT sign-in/device URL the device-code flow prints.
+          const urlMatch = text.match(/https:\/\/(?:auth\.openai\.com|chatgpt\.com|chat\.openai\.com)\/[^\s)\]]*/);
           if (urlMatch) this.loginUrl = urlMatch[0];
-          const codeMatches = [...text.matchAll(/\bCode:\s*([A-Z0-9][A-Z0-9-]{3,})\b/g)];
-          const visibleCode = codeMatches.map(m => m[1]).find(code => code !== 'shown');
+          const codeMatches = [...text.matchAll(/\b(?:Code|User code|Enter the code)\s*[:=]?\s*([A-Z0-9][A-Z0-9-]{3,})\b/gi)];
+          const visibleCode = codeMatches.map(m => m[1]).find(code => code.toLowerCase() !== 'shown');
           if (visibleCode) this.loginCode = visibleCode;
         },
 
@@ -762,7 +761,7 @@
           <div class="mt-4 p-3 rounded-lg bg-[var(--color-warning)]/10 border border-[var(--color-warning)]/30">
             <p class="text-[11px] uppercase tracking-widest text-[var(--color-warning)] font-semibold mb-1.5">Heads up</p>
             <p class="text-[12px] text-[var(--color-text-secondary)] leading-relaxed">
-              Set <code class="text-[11px] bg-[var(--color-surface-overlay)] px-1 py-0.5 rounded text-[var(--color-text-primary)]">OPENCLAW_VERSION</code> to <strong class="text-[var(--color-text-primary)]">2026.5.X</strong> or newer in your Railway env vars. This template has been updated for the latest OpenClaw releases.
+              This template is pinned to OpenClaw <strong class="text-[var(--color-text-primary)]">2026.6.6</strong>. To run a different release, set <code class="text-[11px] bg-[var(--color-surface-overlay)] px-1 py-0.5 rounded text-[var(--color-text-primary)]">OPENCLAW_VERSION</code> in your Railway env vars (overrides the Dockerfile default).
             </p>
           </div>
 
@@ -797,6 +796,32 @@
       <!-- MAIN CONTENT AREA -->
       <main class="flex-1 w-full max-w-3xl">
         <div class="px-6 space-y-8">
+
+          <!-- Version compatibility bump notice -->
+          <div x-show="versionInfo && versionInfo.bumped" x-cloak
+            class="bg-[var(--color-warning)]/10 border border-[var(--color-warning)]/40 rounded-lg p-4 flex items-start gap-3">
+            <svg class="w-5 h-5 text-[var(--color-warning)] shrink-0 mt-0.5" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <div class="text-sm text-[var(--color-text-secondary)] leading-relaxed">
+              <p class="font-semibold text-[var(--color-text-primary)] mb-1">OpenClaw version auto-bumped for
+                compatibility</p>
+              <p>You requested <code
+                  class="text-[12px] bg-[var(--color-surface-overlay)] px-1 py-0.5 rounded text-[var(--color-text-primary)]"
+                  x-text="versionInfo && versionInfo.requested"></code>, but this template requires at least
+                <code
+                  class="text-[12px] bg-[var(--color-surface-overlay)] px-1 py-0.5 rounded text-[var(--color-text-primary)]"
+                  x-text="versionInfo && versionInfo.minimum"></code>, so it was started on
+                <code
+                  class="text-[12px] bg-[var(--color-surface-overlay)] px-1 py-0.5 rounded text-[var(--color-text-primary)]"
+                  x-text="versionInfo && versionInfo.effective"></code>.
+                To run a newer version, set <code
+                  class="text-[12px] bg-[var(--color-surface-overlay)] px-1 py-0.5 rounded text-[var(--color-text-primary)]">OPENCLAW_VERSION</code>
+                (≥ <span x-text="versionInfo && versionInfo.minimum"></span>) in your Railway Variables.</p>
+            </div>
+          </div>
 
           <!-- ===================== PRE-SETUP VIEW ===================== -->
           <template x-if="isReady && !configured">
@@ -839,6 +864,28 @@
                   <div x-show="authHelp"
                     class="bg-[var(--color-surface)] border border-[var(--color-border-muted)] rounded-lg p-3 text-xs text-[var(--color-text-secondary)] leading-relaxed"
                     x-text="authHelp"></div>
+                  <!-- Console-command panel: OAuth/browser sign-ins that can't run headlessly -->
+                  <div x-show="isConsoleChoice && consoleCommand"
+                    class="bg-[#6e40c9]/10 border border-[#6e40c9]/40 rounded-lg p-4 space-y-3">
+                    <p class="text-[10px] uppercase tracking-widest text-[#a779e9] font-semibold">Run once in the Railway
+                      console</p>
+                    <ol class="text-xs text-[var(--color-text-secondary)] leading-relaxed list-decimal ml-4 space-y-1">
+                      <li>Open your service in Railway → <strong class="text-[var(--color-text-primary)]">Console</strong>
+                        tab.</li>
+                      <li>Paste &amp; run the command below, then open the printed URL and sign in.</li>
+                      <li>When it finishes, return here and click <strong
+                          class="text-[var(--color-text-primary)]">Open OpenClaw UI</strong> (no need to click Run
+                        Setup).</li>
+                    </ol>
+                    <pre
+                      class="bg-[var(--color-surface)] border border-[var(--color-border-muted)] rounded-lg p-3 text-[11px] text-[var(--color-text-secondary)] font-mono whitespace-pre-wrap break-all"
+                      x-text="consoleCommand"></pre>
+                    <button type="button"
+                      @click="navigator.clipboard.writeText(consoleCommand).then(() => { consoleCmdCopied = true; setTimeout(() => consoleCmdCopied = false, 3000); })"
+                      class="btn btn-secondary text-xs">
+                      <span x-text="consoleCmdCopied ? '✓ Copied!' : 'Copy command'"></span>
+                    </button>
+                  </div>
                   <div x-show="isCustomEndpointChoice" class="space-y-3">
                     <div>
                       <label
@@ -883,7 +930,7 @@
                   <div>
                     <label
                       class="block text-xs uppercase tracking-wide text-[var(--color-text-muted)] font-medium mb-2">Model</label>
-                    <input x-model="model" type="text" placeholder="e.g. anthropic/claude-opus-4-7, minimax/MiniMax-M2.7"
+                    <input x-model="model" type="text" placeholder="e.g. anthropic/claude-opus-4-8, minimax/MiniMax-M3"
                       class="input-field" />
                     <p class="text-xs text-[var(--color-text-muted)] mt-1.5">Format: provider/model-name</p>
                   </div>
@@ -975,8 +1022,14 @@
                     </div>
                   </dl>
                 </div>
+                <div x-show="isConsoleChoice"
+                  class="bg-[var(--color-warning)]/10 border border-[var(--color-warning)]/30 rounded-lg p-3 mb-4 text-xs text-[var(--color-text-secondary)] leading-relaxed">
+                  This provider signs in through the Railway console (see the command above). <strong
+                    class="text-[var(--color-text-primary)]">Run Setup is disabled</strong> for it — after the console
+                  command finishes, just open the OpenClaw UI.
+                </div>
                 <div class="flex flex-wrap items-center gap-3 mb-4">
-                  <button @click="runSetup()" :disabled="loading" class="btn btn-primary">
+                  <button @click="runSetup()" :disabled="loading || isConsoleChoice" class="btn btn-primary">
                     <span x-show="!loading">▶ Run Setup</span>
                     <span x-show="loading" class="flex items-center gap-2">
                       <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
