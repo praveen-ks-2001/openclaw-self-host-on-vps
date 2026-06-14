@@ -96,6 +96,8 @@
         gatewayToken: '',
         loginUrl: '',
         loginCode: '',
+        loginUrlCopied: false,
+        loginCodeCopied: false,
         setupStreamTail: '',
         setupError: '',
         showWipeModal: false,
@@ -273,14 +275,19 @@
         },
 
         extractLoginDetails(text) {
-          // Provider-agnostic: OpenClaw builds the device verification URL from
-          // the auth server's response, so don't hardcode a path. Match any
-          // OpenAI/ChatGPT sign-in/device URL the device-code flow prints.
-          const urlMatch = text.match(/https:\/\/(?:auth\.openai\.com|chatgpt\.com|chat\.openai\.com)\/[^\s)\]]*/);
-          if (urlMatch) this.loginUrl = urlMatch[0];
-          const codeMatches = [...text.matchAll(/\b(?:Code|User code|Enter the code)\s*[:=]?\s*([A-Z0-9][A-Z0-9-]{3,})\b/gi)];
-          const visibleCode = codeMatches.map(m => m[1]).find(code => code.toLowerCase() !== 'shown');
-          if (visibleCode) this.loginCode = visibleCode;
+          // The device-code box prints e.g.:
+          //   URL: https://auth.openai.com/codex/device
+          //   Code: MPON-M64WT
+          // Prefer the URL after a "URL:" label; fall back to known auth hosts.
+          const urlByLabel = text.match(/\bURL:\s*(https:\/\/[^\s)\]│]+)/i);
+          const urlByHost = text.match(/https:\/\/(?:auth\.openai\.com|chatgpt\.com|chat\.openai\.com|[a-z0-9.]*x\.ai|[a-z0-9.]*grok\.com)\/[^\s)\]│]*/i);
+          const url = (urlByLabel && urlByLabel[1]) || (urlByHost && urlByHost[0]);
+          if (url) this.loginUrl = url;
+          // Require the "Code:"/"User code:" label WITH a colon and match an
+          // UPPERCASE token (case-sensitive) so we never grab words like "below"
+          // from "enter the code below." or "expires" from "Code expires in...".
+          const codeMatch = text.match(/(?:[Uu]ser[\s-]?[Cc]ode|[Cc]ode)\s*[:=]\s*([A-Z0-9]{3,}-[A-Z0-9]{3,}|[A-Z0-9]{4,})/);
+          if (codeMatch) this.loginCode = codeMatch[1];
         },
 
         extractSetupFailure(text) {
@@ -1011,14 +1018,37 @@
                   <button @click="resetSetup()" :disabled="loading" class="btn btn-danger">Reset</button>
                 </div>
                 <div x-show="loginUrl || loginCode"
-                  class="bg-[#6e40c9]/10 border border-[#6e40c9]/40 rounded-lg p-4 mb-4">
-                  <p class="text-[10px] uppercase tracking-widest text-[#a779e9] font-semibold mb-2">Device sign-in</p>
-                  <a x-show="loginUrl" :href="loginUrl" target="_blank" rel="noopener noreferrer"
-                    class="block text-sm text-[var(--color-accent)] hover:underline break-all mb-2"
-                    x-text="loginUrl"></a>
-                  <div x-show="loginCode"
-                    class="font-mono text-xl font-bold text-[var(--color-text-primary)] tracking-widest bg-[var(--color-surface)] rounded px-3 py-2 inline-block"
-                    x-text="loginCode"></div>
+                  class="bg-[#6e40c9]/10 border border-[#6e40c9]/40 rounded-lg p-4 mb-4 space-y-3">
+                  <p class="text-[10px] uppercase tracking-widest text-[#a779e9] font-semibold">Device sign-in</p>
+                  <p class="text-xs text-[var(--color-text-secondary)] leading-relaxed">Open the URL, enter the code, and
+                    keep this page open until setup finishes.</p>
+
+                  <!-- Sign-in URL + copy + open -->
+                  <div x-show="loginUrl">
+                    <label class="block text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] font-semibold mb-1">Sign-in URL</label>
+                    <div class="flex items-stretch gap-2">
+                      <code class="flex-1 min-w-0 bg-[var(--color-surface)] border border-[var(--color-border-muted)] rounded-lg px-3 py-2 text-xs text-[var(--color-text-secondary)] font-mono break-all" x-text="loginUrl"></code>
+                      <button type="button"
+                        @click="navigator.clipboard.writeText(loginUrl).then(() => { loginUrlCopied = true; setTimeout(() => loginUrlCopied = false, 2500); })"
+                        class="btn btn-secondary text-xs shrink-0">
+                        <span x-text="loginUrlCopied ? '✓' : 'Copy'"></span>
+                      </button>
+                      <a :href="loginUrl" target="_blank" rel="noopener noreferrer" class="btn btn-primary text-xs shrink-0">Open ↗</a>
+                    </div>
+                  </div>
+
+                  <!-- Code + copy (prominent) -->
+                  <div x-show="loginCode">
+                    <label class="block text-[10px] uppercase tracking-widest text-[var(--color-text-muted)] font-semibold mb-1">Code</label>
+                    <div class="flex items-center gap-2">
+                      <span class="font-mono text-2xl font-bold text-[var(--color-text-primary)] tracking-widest bg-[var(--color-surface)] border border-[var(--color-border-muted)] rounded-lg px-4 py-2" x-text="loginCode"></span>
+                      <button type="button"
+                        @click="navigator.clipboard.writeText(loginCode).then(() => { loginCodeCopied = true; setTimeout(() => loginCodeCopied = false, 2500); })"
+                        class="btn btn-secondary text-sm shrink-0">
+                        <span x-text="loginCodeCopied ? '✓ Copied' : 'Copy code'"></span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 <div x-show="setupError"
                   class="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/40 rounded-lg p-3 mb-4 text-sm text-[var(--color-danger)]"

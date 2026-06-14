@@ -1477,14 +1477,18 @@ app.post("/setup/api/run", requireSetupAuth, async (req, res) => {
         });
       }
 
-      stream("\n[setup] Starting gateway...\n");
-      await restartGateway();
-      stream("[setup] Gateway started.\n");
+      // Start the gateway in the background. First boot can take ~30-60s
+      // (plugin load + SQLite migrations); don't block the wizard's "Complete"
+      // on full readiness — the loading screen + /healthz polling cover the gap.
+      stream("\n[setup] Starting gateway in the background (first boot can take up to a minute)...\n");
+      ensureGatewayRunning().catch((err) => {
+        serverLog.error("setup", `gateway start after setup failed: ${err.message}`);
+      });
     }
 
     stream(
       ok
-        ? "\n[setup] Complete.\n"
+        ? "\n[setup] Complete. The gateway is finishing startup — open the OpenClaw UI (it may show a brief loading screen).\n"
         : "\n[setup] Failed. Review the output above.\n",
     );
     return res.end();
