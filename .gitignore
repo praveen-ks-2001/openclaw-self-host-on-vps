@@ -5,6 +5,7 @@ npm-debug.log*
 # Local env
 .env
 src_ref
+ref
 CLAUDE.md
 oc_main
 todos.md
