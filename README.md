@@ -10,7 +10,7 @@
 
 ### Step 1: Deploy on Railway
 
-1. Click the **"Deploy on Railway"** button at the top of this page &amp; wait for the initial deployment to complete (~3-5 minutes)
+1. Click the **"Deploy on Railway"** button at the top of this page &amp; wait for the initial deployment to complete. The first startup can take several minutes
 
 ### Step 2: Note Your Credentials
 
@@ -29,27 +29,27 @@ Check the **Variables** tab and save following:
 
 ### Step 4: Complete the Setup Wizard
 
-Once you log in, follow the intuitive 7-step guide on the left side of the setup screen to bring your AI agent online:
+1. Select your **provider & auth type**, then enter an API key if requested.
+2. Add **channels** if you want to use Telegram, Discord, or Slack. This is optional.
+3. Click **Run Setup**. For browser sign-in, open the sign-in URL and enter the code shown by the wizard; keep the setup page open until it completes.
+4. Click **Open OpenClaw UI**. If it is still starting, wait for the Gateway to become ready.
+5. If OpenClaw asks for a **Gateway secret**, return to `/setup`, click **Copy Gateway Token**, paste it into that field, and click **Connect**.
+6. If OpenClaw shows **Approve this browser** or a command such as `openclaw devices approve <requestId>`, keep that tab open. Return to `/setup` → **Pair Devices** → **Approve** the request with the same ID. Then return to OpenClaw; it connects automatically, or you can click **Check now**.
+7. Once OpenClaw shows **Connected**, you can start chatting.
 
-![OpenCrawl Setup Page](https://raw.githubusercontent.com/praveen-ks-2001/openclaw-self-host-on-vps/refs/heads/dev/src/public/setup%20page.png)
-
-1. Select your **provider & auth type**, then paste your API key
-2. Add **channels** (optional — can be done later)
-3. Click **Run Setup**
-4. If you added a channel token, click **Authorize Channel** and enter the code
-   *(After setup, message your bot on the channel. It will reply with a pairing code. Enter that code here to grant DM access.)*
-5. Click **Launch Dashboard**
-6. First login? Click **Approve Pairing** → **Approve Latest Request**
-   *(New browsers need a one-time device approval. After clicking "Launch Dashboard", come back here, click "Approve Pairing", and approve the pending request.)*
-7. You should now see **Health: OK** in the OpenClaw UI.
-
-![Health Ok](https://res.cloudinary.com/asset-cloudinary/image/upload/v1772139788/health_ok_swgk94.png)
+For Telegram or Discord, message your bot. If it replies with a pairing code, go to `/setup` → **Approve Channel Access**, choose the channel, and enter that code. This is separate from browser approval.
 
 ### Step 5: Start Chatting
 
-1. Click **"Chat"** in the sidebar of the newly opened OpenClaw UI
+1. Click **New conversation** in the OpenClaw sidebar
 2. Type your first message
 3. Enjoy your self-hosted AI assistant! 🎉
+
+### Upgrading an Existing Installation
+
+This template targets **OpenClaw 2026.10.4**. Keep your existing persistent volume mounted at `/data` when redeploying. The template migrates existing configuration and state during startup; allow the health check to complete before opening the UI. Older `OPENCLAW_VERSION` overrides are raised to this minimum supported version.
+
+Existing users do not need to run setup again. Use `/setup` → **Open OpenClaw UI** after the upgrade. Existing browser approvals are retained; a new browser or an import into another deployment may require pairing. Use **Export Data** first if you want a manual backup. **Reset configuration** and **Wipe all data** are not steps in an ordinary upgrade.
 
 ---
 
@@ -67,7 +67,7 @@ Hosting OpenClaw involves running it as a long-lived service with access to envi
 ## Dependencies for OpenClaw Railway Template Hosting
 
 * Railway account
-* Supported LLM provider API key (for example, OpenAI or equivalent)
+* An API key or supported browser sign-in method for your chosen LLM provider
 
 ### Deployment Dependencies
 
@@ -115,7 +115,7 @@ This template deploys OpenClaw on Railway, not on your local machine.
 
 ### What environment variables are required to run OpenClaw?
 
-At minimum, you need an API key for a supported LLM provider. Additional variables may be required depending on your OpenClaw configuration.
+Set `SETUP_PASSWORD` to protect the setup wizard and keep the persistent volume mounted at `/data`. Choose your provider in the wizard and supply an API key or complete a supported browser sign-in. To enable the terminal UI, set `ENABLE_WEB_TUI=true`.
 
 ---
 
@@ -127,8 +127,7 @@ Yes, depending on Railway settings (using SETUP_PASSWORD). You should restrict a
 
 ### Does this template include OpenClaw plugins or skills?
 
-No.
-Only base OpenClaw is deployed. Plugins or skills must be added manually after deployment from the OpenClaw UI
+The template installs the plugins required by the provider and channels you select during setup. Manage additional plugins and skills from the OpenClaw UI.
 
 ---
 
