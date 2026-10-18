@@ -6,6 +6,12 @@
 
 **OpenClaw** is a self-hosted AI agent framework that can execute commands, manage files, and perform tasks autonomously based on user instructions. This template deploys OpenClaw on Railway with minimal configuration, allowing you to run and access it remotely without managing servers. 🤖⚙️
 
+## OpenClaw Version
+
+This branch pins **OpenClaw 2026.6.6** in `package.json`. Railway version variables, including an existing `OPENCLAW_VERSION`, are ignored. Select the corresponding release branch in Railway to change versions.
+
+An installation already migrated by a newer release also needs a compatible pre-upgrade data backup before downgrading. Switching branches does not reverse database changes, and the old backup does not contain subsequent chats or edits.
+
 ## 🚀 Quick Start Deployment Guide
 
 ### Step 1: Deploy on Railway
